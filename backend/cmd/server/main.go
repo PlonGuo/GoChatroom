@@ -5,6 +5,7 @@ import (
 
 	"github.com/PlonGuo/GoChatroom/backend/internal/config"
 	"github.com/PlonGuo/GoChatroom/backend/internal/database"
+	"github.com/PlonGuo/GoChatroom/backend/internal/router"
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/redis"
 	"github.com/gin-gonic/gin"
 )
@@ -35,25 +36,13 @@ func main() {
 	}
 	defer redis.Close()
 
+	// Create Gin router
 	r := gin.Default()
 
-	// Health check endpoint
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "ok",
-		})
-	})
+	// Setup routes
+	router.Setup(r)
 
-	// API v1 routes
-	v1 := r.Group("/api/v1")
-	{
-		v1.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "pong",
-			})
-		})
-	}
-
+	// Start server
 	log.Printf("Server starting on port %s", cfg.App.Port)
 	if err := r.Run(":" + cfg.App.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
