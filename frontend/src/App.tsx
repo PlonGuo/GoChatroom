@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
-import { AuthGuard, GuestGuard } from './components';
-import { Login, Register, Home } from './pages';
+import { AuthGuard, GuestGuard, AppLayout } from './components';
+import { Login, Register, Home, Contacts, Profile } from './pages';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { fetchCurrentUser } from './store/authSlice';
 
@@ -44,12 +44,34 @@ function App() {
             }
           />
 
-          {/* Protected routes */}
+          {/* Protected routes with layout */}
           <Route
             path="/"
             element={
               <AuthGuard>
-                <Home />
+                <AppLayout>
+                  <Home />
+                </AppLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/contacts"
+            element={
+              <AuthGuard>
+                <AppLayout>
+                  <Contacts />
+                </AppLayout>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <AuthGuard>
+                <AppLayout>
+                  <Profile />
+                </AppLayout>
               </AuthGuard>
             }
           />
