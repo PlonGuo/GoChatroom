@@ -15,6 +15,9 @@ func Setup(r *gin.Engine) {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+	r.GET("/api/v1/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok", "version": "1.0.0"})
+	})
 
 	// WebSocket endpoint (uses token in query param for auth)
 	r.GET("/ws", handler.WebSocketHandler)

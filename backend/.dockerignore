@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+
+# Documentation
+docs/
+*.md
+
+# Fly.io
+fly.toml
+
+# Environment
+.env
+.env.*
+!.env.example

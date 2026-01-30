@@ -1,0 +1,60 @@
+# fly.toml - Fly.io configuration for GoChatroom backend
+# Deploy with: flyctl deploy
+
+app = "gochatroom-backend"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  GIN_MODE = "release"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 800
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.tcp_checks]]
+    grace_period = "5s"
+    interval = "30s"
+    restart_limit = 0
+    timeout = "10s"
+
+  [[services.http_checks]]
+    interval = "30s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/v1/health"
+    protocol = "http"
+    timeout = "10s"
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/v1/health"
+    port = 8080
+    timeout = "5s"
+    type = "http"
