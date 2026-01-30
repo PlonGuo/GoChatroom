@@ -2,15 +2,30 @@ package main
 
 import (
 	"log"
-	"os"
 
+	"github.com/PlonGuo/GoChatroom/backend/internal/config"
+	"github.com/PlonGuo/GoChatroom/backend/internal/database"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Load configuration
+	cfg := config.Get()
+
 	// Set Gin mode based on environment
-	if os.Getenv("APP_ENV") == "production" {
+	if cfg.IsProduction() {
 		gin.SetMode(gin.ReleaseMode)
+	}
+
+	// Initialize database connection
+	if err := database.Init(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer database.Close()
+
+	// Run database migrations
+	if err := database.Migrate(); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
 	r := gin.Default()
@@ -32,13 +47,8 @@ func main() {
 		})
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("Server starting on port %s", port)
-	if err := r.Run(":" + port); err != nil {
+	log.Printf("Server starting on port %s", cfg.App.Port)
+	if err := r.Run(":" + cfg.App.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
