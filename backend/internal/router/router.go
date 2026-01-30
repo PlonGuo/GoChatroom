@@ -66,7 +66,25 @@ func Setup(r *gin.Engine) {
 				groups.DELETE("/:uuid/members/:memberUuid", handler.KickMember)
 			}
 
-			// Contact management will be added here
+			// Contact/Friend management
+			contacts := protected.Group("/contacts")
+			{
+				contacts.GET("", handler.GetContacts)
+				contacts.DELETE("/:uuid", handler.DeleteContact)
+				contacts.POST("/:uuid/block", handler.BlockContact)
+				contacts.POST("/:uuid/unblock", handler.UnblockContact)
+			}
+
+			// Friend requests
+			requests := protected.Group("/requests")
+			{
+				requests.POST("", handler.SendFriendRequest)
+				requests.GET("/pending", handler.GetPendingRequests)
+				requests.GET("/sent", handler.GetSentRequests)
+				requests.POST("/:uuid/accept", handler.AcceptFriendRequest)
+				requests.POST("/:uuid/reject", handler.RejectFriendRequest)
+			}
+
 			// Session/Message management will be added here
 		}
 	}
