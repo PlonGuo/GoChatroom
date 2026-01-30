@@ -6,3 +6,4 @@ export { AppSidebar } from './AppSidebar';
 export { ContactList } from './ContactList';
 export { FriendRequestList } from './FriendRequestList';
 export { UserSearch } from './UserSearch';
+export { SessionList } from './SessionList';
