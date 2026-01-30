@@ -53,9 +53,10 @@ describe('Login', () => {
     const user = userEvent.setup()
 
     // Mock fetch
-    global.fetch = vi.fn().mockResolvedValue({
+    const mockFetch = vi.fn().mockResolvedValue({
       json: () => Promise.resolve({ code: 0, data: { user: {}, token: 'test-token' } }),
     })
+    vi.stubGlobal('fetch', mockFetch)
 
     render(<Login />)
 
@@ -69,7 +70,7 @@ describe('Login', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalled()
     })
   })
 })

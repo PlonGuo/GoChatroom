@@ -161,7 +161,7 @@ const contactSlice = createSlice({
       })
       // Delete contact
       .addCase(deleteContact.fulfilled, (state, action) => {
-        state.contacts = state.contacts.filter((c) => c.contact_uuid !== action.payload);
+        state.contacts = state.contacts.filter((c) => c.uuid !== action.payload);
       });
   },
 });

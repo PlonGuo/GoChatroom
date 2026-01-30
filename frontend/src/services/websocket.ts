@@ -15,7 +15,7 @@ class WebSocketService {
   private disconnectHandlers: ConnectionHandler[] = [];
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
   connect(token: string) {
     if (this.ws?.readyState === WebSocket.OPEN) {
@@ -81,19 +81,17 @@ class WebSocketService {
     }
   }
 
-  sendMessage(sessionId: number, content: string, messageType: string = 'text') {
+  sendMessage(sessionId: string, receiveId: string, content: string, messageType: number = 0) {
     if (this.ws?.readyState !== WebSocket.OPEN) {
       console.error('WebSocket is not connected');
       return false;
     }
 
     const message = {
-      type: 'message',
-      data: {
-        session_id: sessionId,
-        content,
-        message_type: messageType,
-      },
+      type: messageType,
+      content,
+      sessionId,
+      receiveId,
     };
 
     this.ws.send(JSON.stringify(message));

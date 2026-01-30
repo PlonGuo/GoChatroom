@@ -1,4 +1,4 @@
-import { Modal, Avatar, Typography, Space, Button } from 'antd';
+import { Modal, Avatar, Typography, Flex, Button } from 'antd';
 import { PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { webrtcService } from '../services';
 
@@ -30,7 +30,7 @@ export const IncomingCallModal = ({ visible, callerName, callerAvatar }: Incomin
         body: { textAlign: 'center', padding: 24 },
       }}
     >
-      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+      <Flex vertical align="center" gap="large">
         <Avatar
           src={callerAvatar}
           icon={!callerAvatar && <UserOutlined />}
@@ -43,7 +43,7 @@ export const IncomingCallModal = ({ visible, callerName, callerAvatar }: Incomin
           </Title>
           <Text type="secondary">is calling you...</Text>
         </div>
-        <Space size="large">
+        <Flex gap="large">
           <Button
             type="primary"
             danger
@@ -60,8 +60,8 @@ export const IncomingCallModal = ({ visible, callerName, callerAvatar }: Incomin
             onClick={handleAccept}
             style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
           />
-        </Space>
-      </Space>
+        </Flex>
+      </Flex>
     </Modal>
   );
 };

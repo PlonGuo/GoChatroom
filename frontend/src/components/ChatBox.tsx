@@ -52,11 +52,11 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
       }}
     >
       {messages.map((message) => {
-        const isSelf = message.sender_uuid === user?.uuid;
+        const isSelf = message.sendId === user?.uuid;
 
         return (
           <div
-            key={message.id}
+            key={message.uuid}
             style={{
               display: 'flex',
               flexDirection: isSelf ? 'row-reverse' : 'row',
@@ -65,8 +65,8 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
             }}
           >
             <Avatar
-              src={message.sender?.avatar}
-              icon={!message.sender?.avatar && <UserOutlined />}
+              src={message.sendAvatar}
+              icon={!message.sendAvatar && <UserOutlined />}
               style={{ backgroundColor: isSelf ? '#1890ff' : '#87d068', flexShrink: 0 }}
               size="small"
             />
@@ -80,7 +80,7 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
             >
               {!isSelf && (
                 <Text type="secondary" style={{ fontSize: 12, marginBottom: 4 }}>
-                  {message.sender?.nickname}
+                  {message.sendName}
                 </Text>
               )}
               <div
@@ -97,7 +97,7 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
                 {message.content}
               </div>
               <Text type="secondary" style={{ fontSize: 11, marginTop: 4 }}>
-                {formatTime(message.created_at)}
+                {formatTime(message.createdAt)}
               </Text>
             </div>
           </div>

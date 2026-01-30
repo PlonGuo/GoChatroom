@@ -45,7 +45,7 @@ export const UserSearch = () => {
     }
   };
 
-  const isContact = (uuid: string) => contacts.some((c) => c.contact_uuid === uuid);
+  const isContact = (uuid: string) => contacts.some((c) => c.uuid === uuid);
 
   return (
     <>

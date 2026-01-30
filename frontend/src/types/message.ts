@@ -15,13 +15,15 @@ export interface Message {
   createdAt: string;
 }
 
-export enum MessageType {
-  Text = 0,
-  Voice = 1,
-  File = 2,
-  Image = 3,
-  VideoCall = 4,
-}
+export const MessageType = {
+  Text: 0,
+  Voice: 1,
+  File: 2,
+  Image: 3,
+  VideoCall: 4,
+} as const;
+
+export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
 export interface Session {
   uuid: string;

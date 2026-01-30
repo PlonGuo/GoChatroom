@@ -31,9 +31,13 @@ export const fetchSessions = createAsyncThunk('session/fetchSessions', async (_,
 
 export const createPrivateSession = createAsyncThunk(
   'session/createPrivate',
-  async (contactUuid: string, { rejectWithValue }) => {
+  async (contact: { uuid: string; nickname: string; avatar?: string }, { rejectWithValue }) => {
     try {
-      return await sessionApi.createSession({ type: 'private', target_uuid: contactUuid });
+      return await sessionApi.createSession({
+        receiveId: contact.uuid,
+        receiveName: contact.nickname,
+        avatar: contact.avatar,
+      });
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to create session');
     }
@@ -42,9 +46,13 @@ export const createPrivateSession = createAsyncThunk(
 
 export const createGroupSession = createAsyncThunk(
   'session/createGroup',
-  async (groupUuid: string, { rejectWithValue }) => {
+  async (group: { uuid: string; name: string; avatar?: string }, { rejectWithValue }) => {
     try {
-      return await sessionApi.createSession({ type: 'group', target_uuid: groupUuid });
+      return await sessionApi.createSession({
+        receiveId: group.uuid,
+        receiveName: group.name,
+        avatar: group.avatar,
+      });
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to create session');
     }
@@ -53,9 +61,9 @@ export const createGroupSession = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   'session/fetchMessages',
-  async ({ sessionId, limit, before }: { sessionId: number; limit?: number; before?: number }, { rejectWithValue }) => {
+  async ({ sessionId, limit, offset }: { sessionId: string; limit?: number; offset?: number }, { rejectWithValue }) => {
     try {
-      return await sessionApi.getMessages(sessionId, limit, before);
+      return await sessionApi.getMessages(sessionId, limit, offset);
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch messages');
     }
@@ -64,10 +72,10 @@ export const fetchMessages = createAsyncThunk(
 
 export const deleteSession = createAsyncThunk(
   'session/delete',
-  async (sessionId: number, { rejectWithValue }) => {
+  async (sessionUuid: string, { rejectWithValue }) => {
     try {
-      await sessionApi.deleteSession(sessionId);
-      return sessionId;
+      await sessionApi.deleteSession(sessionUuid);
+      return sessionUuid;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to delete session');
     }
@@ -85,12 +93,12 @@ const sessionSlice = createSlice({
     addMessage: (state, action: PayloadAction<Message>) => {
       state.messages.push(action.payload);
       // Update last message in session list
-      const session = state.sessions.find((s) => s.id === action.payload.session_id);
+      const session = state.sessions.find((s) => s.uuid === action.payload.sessionId);
       if (session) {
-        session.last_message = action.payload.content;
-        session.last_message_time = action.payload.created_at;
+        session.lastMessage = action.payload.content;
+        session.lastMessageAt = action.payload.createdAt;
         // Move session to top
-        state.sessions = [session, ...state.sessions.filter((s) => s.id !== session.id)];
+        state.sessions = [session, ...state.sessions.filter((s) => s.uuid !== session.uuid)];
       }
     },
     clearMessages: (state) => {
@@ -117,7 +125,7 @@ const sessionSlice = createSlice({
       })
       // Create private session
       .addCase(createPrivateSession.fulfilled, (state, action) => {
-        const existingIndex = state.sessions.findIndex((s) => s.id === action.payload.id);
+        const existingIndex = state.sessions.findIndex((s) => s.uuid === action.payload.uuid);
         if (existingIndex === -1) {
           state.sessions.unshift(action.payload);
         }
@@ -125,7 +133,7 @@ const sessionSlice = createSlice({
       })
       // Create group session
       .addCase(createGroupSession.fulfilled, (state, action) => {
-        const existingIndex = state.sessions.findIndex((s) => s.id === action.payload.id);
+        const existingIndex = state.sessions.findIndex((s) => s.uuid === action.payload.uuid);
         if (existingIndex === -1) {
           state.sessions.unshift(action.payload);
         }
@@ -145,8 +153,8 @@ const sessionSlice = createSlice({
       })
       // Delete session
       .addCase(deleteSession.fulfilled, (state, action) => {
-        state.sessions = state.sessions.filter((s) => s.id !== action.payload);
-        if (state.currentSession?.id === action.payload) {
+        state.sessions = state.sessions.filter((s) => s.uuid !== action.payload);
+        if (state.currentSession?.uuid === action.payload) {
           state.currentSession = null;
           state.messages = [];
         }

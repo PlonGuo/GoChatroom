@@ -1,5 +1,5 @@
 import { List, Avatar, Typography, Badge, Empty, Popconfirm, Button, message } from 'antd';
-import { UserOutlined, TeamOutlined, DeleteOutlined } from '@ant-design/icons';
+import { UserOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { setCurrentSession, deleteSession } from '../store/sessionSlice';
 import type { Session } from '../types';
@@ -19,10 +19,10 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
     onSelectSession?.(session);
   };
 
-  const handleDeleteSession = async (sessionId: number, e?: React.MouseEvent) => {
+  const handleDeleteSession = async (sessionUuid: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     try {
-      await dispatch(deleteSession(sessionId)).unwrap();
+      await dispatch(deleteSession(sessionUuid)).unwrap();
       message.success('Conversation deleted');
     } catch (error) {
       message.error(error as string);
@@ -54,8 +54,7 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
       loading={isLoading}
       dataSource={sessions}
       renderItem={(session) => {
-        const isSelected = currentSession?.id === session.id;
-        const isGroup = session.type === 'group';
+        const isSelected = currentSession?.uuid === session.uuid;
 
         return (
           <List.Item
@@ -71,7 +70,7 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
                 key="delete"
                 title="Delete conversation"
                 description="This will only remove it from your list"
-                onConfirm={(e) => handleDeleteSession(session.id, e as unknown as React.MouseEvent)}
+                onConfirm={(e) => handleDeleteSession(session.uuid, e as unknown as React.MouseEvent)}
                 onCancel={(e) => e?.stopPropagation()}
                 okText="Yes"
                 cancelText="No"
@@ -88,22 +87,22 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
           >
             <List.Item.Meta
               avatar={
-                <Badge dot={session.unread_count > 0} offset={[-4, 4]}>
+                <Badge dot={session.unreadCount > 0} offset={[-4, 4]}>
                   <Avatar
                     src={session.avatar}
-                    icon={isGroup ? <TeamOutlined /> : <UserOutlined />}
-                    style={{ backgroundColor: isGroup ? '#52c41a' : '#1890ff' }}
+                    icon={<UserOutlined />}
+                    style={{ backgroundColor: '#1890ff' }}
                   />
                 </Badge>
               }
               title={
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text strong ellipsis style={{ maxWidth: 150 }}>
-                    {session.name}
+                    {session.receiveName}
                   </Text>
-                  {session.last_message_time && (
+                  {session.lastMessageAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      {formatTime(session.last_message_time)}
+                      {formatTime(session.lastMessageAt)}
                     </Text>
                   )}
                 </div>
@@ -111,10 +110,10 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
               description={
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text type="secondary" ellipsis style={{ maxWidth: 150 }}>
-                    {session.last_message || 'No messages yet'}
+                    {session.lastMessage || 'No messages yet'}
                   </Text>
-                  {session.unread_count > 0 && (
-                    <Badge count={session.unread_count} size="small" style={{ marginLeft: 8 }} />
+                  {session.unreadCount > 0 && (
+                    <Badge count={session.unreadCount} size="small" style={{ marginLeft: 8 }} />
                   )}
                 </div>
               }

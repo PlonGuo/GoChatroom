@@ -42,7 +42,7 @@ export const ContactList = ({ onStartChat }: ContactListProps) => {
               key="delete"
               title="Delete contact"
               description="Are you sure you want to delete this contact?"
-              onConfirm={() => handleDelete(contact.contact_uuid)}
+              onConfirm={() => handleDelete(contact.uuid)}
               okText="Yes"
               cancelText="No"
             >
@@ -53,13 +53,13 @@ export const ContactList = ({ onStartChat }: ContactListProps) => {
           <List.Item.Meta
             avatar={
               <Avatar
-                src={contact.contact_avatar}
-                icon={!contact.contact_avatar && <UserOutlined />}
+                src={contact.avatar}
+                icon={!contact.avatar && <UserOutlined />}
                 style={{ backgroundColor: '#1890ff' }}
               />
             }
-            title={contact.contact_nickname}
-            description={contact.remark || contact.contact_email}
+            title={contact.nickname}
+            description={contact.signature}
           />
         </List.Item>
       )}

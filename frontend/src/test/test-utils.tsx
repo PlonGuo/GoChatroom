@@ -1,24 +1,23 @@
-import { ReactElement } from 'react'
-import { render, RenderOptions } from '@testing-library/react'
+import type { ReactElement } from 'react'
+import { render, type RenderOptions } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
 import { configureStore } from '@reduxjs/toolkit'
-import type { PreloadedState } from '@reduxjs/toolkit'
 import authReducer from '../store/authSlice'
 import contactReducer from '../store/contactSlice'
 import sessionReducer from '../store/sessionSlice'
 import type { RootState } from '../store'
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
-  preloadedState?: PreloadedState<RootState>
+  preloadedState?: Partial<RootState>
   route?: string
 }
 
 export function renderWithProviders(
   ui: ReactElement,
   {
-    preloadedState = {},
+    preloadedState,
     route = '/',
     ...renderOptions
   }: ExtendedRenderOptions = {}
@@ -33,7 +32,7 @@ export function renderWithProviders(
       contact: contactReducer,
       session: sessionReducer,
     },
-    preloadedState,
+    preloadedState: preloadedState as Parameters<typeof configureStore>[0]['preloadedState'],
   })
 
   function Wrapper({ children }: { children: React.ReactNode }) {

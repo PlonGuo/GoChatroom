@@ -35,5 +35,5 @@ export const updatePassword = async (data: UpdatePasswordRequest): Promise<void>
 };
 
 export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
-  return updatePassword({ old_password: currentPassword, new_password: newPassword });
+  return updatePassword({ oldPassword: currentPassword, newPassword: newPassword });
 };

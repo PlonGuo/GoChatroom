@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Card, Typography, Empty, Badge } from 'antd';
-import { MessageOutlined, WifiOutlined, DisconnectOutlined } from '@ant-design/icons';
-import { SessionList, ChatBox, ChatInput } from '../components';
+import { Card, Typography, Empty, Badge, Button, Tooltip } from 'antd';
+import { MessageOutlined, WifiOutlined, DisconnectOutlined, VideoCameraOutlined } from '@ant-design/icons';
+import { SessionList, ChatBox, ChatInput, VideoCall, IncomingCallModal } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchSessions, fetchMessages, addMessage } from '../store/sessionSlice';
 import { websocketService } from '../services/websocket';
+import { webrtcService } from '../services';
+import type { CallState } from '../services';
 
 const { Title, Text } = Typography;
 
 export const Home = () => {
   const dispatch = useAppDispatch();
-  const { token } = useAppSelector((state) => state.auth);
+  const { token, user } = useAppSelector((state) => state.auth);
   const { currentSession, messages, isLoadingMessages } = useAppSelector((state) => state.session);
   const [isConnected, setIsConnected] = useState(false);
+  const [callState, setCallState] = useState<CallState>(webrtcService.getState());
+  const [callerInfo, setCallerInfo] = useState<{ name?: string; avatar?: string }>({});
 
   useEffect(() => {
     dispatch(fetchSessions());
@@ -45,96 +49,155 @@ export const Home = () => {
 
   useEffect(() => {
     if (currentSession) {
-      dispatch(fetchMessages({ sessionId: currentSession.id }));
+      dispatch(fetchMessages({ sessionId: currentSession.uuid }));
     }
   }, [currentSession, dispatch]);
 
+  // WebRTC connection for video calls
+  useEffect(() => {
+    if (token && user?.uuid) {
+      webrtcService.connect(token, user.uuid);
+
+      const unsubStateChange = webrtcService.onStateChange((state) => {
+        setCallState(state);
+        // When receiving a call, try to get caller info from current session
+        if (state.isReceivingCall && currentSession && state.remoteUserId === currentSession.receiveId) {
+          setCallerInfo({
+            name: currentSession.receiveName,
+            avatar: currentSession.avatar,
+          });
+        }
+      });
+
+      return () => {
+        unsubStateChange();
+        webrtcService.disconnect();
+      };
+    }
+  }, [token, user?.uuid, currentSession]);
+
+  const handleStartVideoCall = () => {
+    if (currentSession) {
+      webrtcService.initiateCall(currentSession.receiveId);
+    }
+  };
+
+  const handleCloseVideoCall = () => {
+    setCallState(webrtcService.getState());
+  };
+
   const handleSendMessage = (content: string) => {
     if (currentSession) {
-      websocketService.sendMessage(currentSession.id, content);
+      websocketService.sendMessage(currentSession.uuid, currentSession.receiveId, content, 0);
     }
   };
 
   return (
-    <div style={{ height: 'calc(100vh - 64px)', display: 'flex' }}>
-      {/* Session List */}
-      <Card
-        style={{
-          width: 320,
-          height: '100%',
-          borderRadius: 0,
-          overflow: 'auto',
-        }}
-        bodyStyle={{ padding: 0 }}
-        title={
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>
-              <MessageOutlined style={{ marginRight: 8 }} />
-              Messages
-            </span>
-            <Badge
-              status={isConnected ? 'success' : 'error'}
-              text={
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  {isConnected ? <WifiOutlined /> : <DisconnectOutlined />}
-                </Text>
-              }
-            />
-          </div>
-        }
-      >
-        <SessionList />
-      </Card>
+    <>
+      <div style={{ height: 'calc(100vh - 64px)', display: 'flex' }}>
+        {/* Session List */}
+        <Card
+          style={{
+            width: 320,
+            height: '100%',
+            borderRadius: 0,
+            overflow: 'auto',
+          }}
+          bodyStyle={{ padding: 0 }}
+          title={
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>
+                <MessageOutlined style={{ marginRight: 8 }} />
+                Messages
+              </span>
+              <Badge
+                status={isConnected ? 'success' : 'error'}
+                text={
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {isConnected ? <WifiOutlined /> : <DisconnectOutlined />}
+                  </Text>
+                }
+              />
+            </div>
+          }
+        >
+          <SessionList />
+        </Card>
 
-      {/* Chat Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {currentSession ? (
-          <>
-            <Card
+        {/* Chat Area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {currentSession ? (
+            <>
+              <Card
+                style={{
+                  flex: 1,
+                  borderRadius: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                }}
+                bodyStyle={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: 0,
+                  overflow: 'hidden',
+                }}
+                title={
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{currentSession.receiveName}</span>
+                    <Tooltip title="Video Call">
+                      <Button
+                        type="text"
+                        icon={<VideoCameraOutlined />}
+                        onClick={handleStartVideoCall}
+                        disabled={!isConnected}
+                      />
+                    </Tooltip>
+                  </div>
+                }
+              >
+                <ChatBox messages={messages} isLoading={isLoadingMessages} />
+                <ChatInput onSend={handleSendMessage} disabled={!isConnected} />
+              </Card>
+            </>
+          ) : (
+            <div
               style={{
                 flex: 1,
-                borderRadius: 0,
                 display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#fafafa',
               }}
-              bodyStyle={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                padding: 0,
-                overflow: 'hidden',
-              }}
-              title={currentSession.name}
             >
-              <ChatBox messages={messages} isLoading={isLoadingMessages} />
-              <ChatInput onSend={handleSendMessage} disabled={!isConnected} />
-            </Card>
-          </>
-        ) : (
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: '#fafafa',
-            }}
-          >
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={
-                <div>
-                  <Title level={4} type="secondary">
-                    Welcome to GoChatroom
-                  </Title>
-                  <Text type="secondary">Select a conversation to start chatting</Text>
-                </div>
-              }
-            />
-          </div>
-        )}
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  <div>
+                    <Title level={4} type="secondary">
+                      Welcome to GoChatroom
+                    </Title>
+                    <Text type="secondary">Select a conversation to start chatting</Text>
+                  </div>
+                }
+              />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Video Call UI */}
+      {(callState.isInCall || callState.isCalling) && (
+        <VideoCall onClose={handleCloseVideoCall} />
+      )}
+
+      {/* Incoming Call Modal */}
+      <IncomingCallModal
+        visible={callState.isReceivingCall}
+        callerName={callerInfo.name}
+        callerAvatar={callerInfo.avatar}
+      />
+    </>
   );
 };
