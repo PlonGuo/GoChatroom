@@ -7,6 +7,7 @@ import {
   VideoCameraOutlined,
   StopOutlined,
 } from '@ant-design/icons';
+import { useAppSelector } from '../hooks';
 import { webrtcService } from '../services';
 import type { CallState } from '../services';
 
@@ -17,11 +18,14 @@ interface VideoCallProps {
 }
 
 export const VideoCall = ({ onClose }: VideoCallProps) => {
+  const { mode } = useAppSelector((state) => state.theme);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [callState, setCallState] = useState<CallState>(webrtcService.getState());
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   useEffect(() => {
     const unsubscribe = webrtcService.onStateChange((state) => {
@@ -115,7 +119,10 @@ export const VideoCall = ({ onClose }: VideoCallProps) => {
               height: 150,
               borderRadius: 8,
               overflow: 'hidden',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              boxShadow: isCyberpunk
+                ? '0 0 20px rgba(0, 240, 255, 0.4)'
+                : '0 4px 12px rgba(0,0,0,0.3)',
+              border: isCyberpunk ? '2px solid rgba(0, 240, 255, 0.5)' : undefined,
             }}
           >
             <video
@@ -140,7 +147,9 @@ export const VideoCall = ({ onClose }: VideoCallProps) => {
           padding: 24,
           display: 'flex',
           justifyContent: 'center',
-          background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+          background: isCyberpunk
+            ? 'linear-gradient(transparent, rgba(10, 14, 26, 0.9))'
+            : 'linear-gradient(transparent, rgba(0,0,0,0.8))',
         }}
       >
         <Space size="large">

@@ -1,14 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import { AuthGuard, GuestGuard, AppLayout } from './components';
 import { Login, Register, Home, Contacts, Profile } from './pages';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { fetchCurrentUser } from './store/authSlice';
+import { getCyberpunkTheme, getLightTheme } from './theme';
 
 function App() {
   const dispatch = useAppDispatch();
   const { token, user } = useAppSelector((state) => state.auth);
+  const { mode } = useAppSelector((state) => state.theme);
+
+  // Apply theme class to body
+  useEffect(() => {
+    document.body.className = `theme-${mode}`;
+  }, [mode]);
 
   useEffect(() => {
     if (token && !user) {
@@ -16,14 +23,13 @@ function App() {
     }
   }, [dispatch, token, user]);
 
+  // Memoize theme config to avoid unnecessary re-renders
+  const themeConfig = useMemo(() => {
+    return mode === 'cyberpunk' ? getCyberpunkTheme() : getLightTheme();
+  }, [mode]);
+
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#1890ff',
-        },
-      }}
-    >
+    <ConfigProvider theme={themeConfig}>
       <BrowserRouter>
         <Routes>
           {/* Public routes */}

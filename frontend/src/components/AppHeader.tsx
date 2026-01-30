@@ -3,6 +3,7 @@ import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons
 import type { MenuProps } from 'antd';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { logout } from '../store/authSlice';
+import { ThemeToggle } from './ThemeToggle';
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -10,6 +11,7 @@ const { Text } = Typography;
 export const AppHeader = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { mode } = useAppSelector((state) => state.theme);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -37,30 +39,39 @@ export const AppHeader = () => {
     },
   ];
 
+  const isCyberpunk = mode === 'cyberpunk';
+
   return (
     <Header
       style={{
-        background: '#fff',
         padding: '0 24px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderBottom: '1px solid #f0f0f0',
       }}
     >
-      <Text strong style={{ fontSize: 18 }}>
+      <Text
+        strong
+        style={{
+          fontSize: 18,
+          color: isCyberpunk ? '#00f0ff' : undefined,
+        }}
+        className={isCyberpunk ? 'cyberpunk-text-glow' : ''}
+      >
         GoChatroom
       </Text>
-      <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={['click']}>
-        <Space style={{ cursor: 'pointer' }}>
-          <Avatar
-            src={user?.avatar}
-            icon={!user?.avatar && <UserOutlined />}
-            style={{ backgroundColor: '#1890ff' }}
-          />
-          <Text>{user?.nickname || 'User'}</Text>
-        </Space>
-      </Dropdown>
+      <Space>
+        <ThemeToggle />
+        <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={['click']}>
+          <Space style={{ cursor: 'pointer' }}>
+            <Avatar
+              src={user?.avatar}
+              icon={!user?.avatar && <UserOutlined />}
+            />
+            <Text>{user?.nickname || 'User'}</Text>
+          </Space>
+        </Dropdown>
+      </Space>
     </Header>
   );
 };

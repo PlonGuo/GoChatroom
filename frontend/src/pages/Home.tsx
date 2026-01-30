@@ -15,9 +15,12 @@ export const Home = () => {
   const dispatch = useAppDispatch();
   const { token, user } = useAppSelector((state) => state.auth);
   const { sessions, currentSession, messages, isLoadingMessages } = useAppSelector((state) => state.session);
+  const { mode } = useAppSelector((state) => state.theme);
   const [isConnected, setIsConnected] = useState(false);
   const [callState, setCallState] = useState<CallState>(webrtcService.getState());
   const [callerInfo, setCallerInfo] = useState<{ name?: string; avatar?: string }>({});
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   // Track sessions for checking if new sessions need to be fetched
   const sessionsRef = useRef(sessions);
@@ -136,7 +139,13 @@ export const Home = () => {
               <Badge
                 status={isConnected ? 'success' : 'error'}
                 text={
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  <Text
+                    type="secondary"
+                    style={{
+                      fontSize: 12,
+                      color: isCyberpunk && isConnected ? '#00f0ff' : undefined,
+                    }}
+                  >
                     {isConnected ? <WifiOutlined /> : <DisconnectOutlined />}
                   </Text>
                 }
@@ -193,7 +202,7 @@ export const Home = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: '#fafafa',
+                background: isCyberpunk ? '#0a0e1a' : '#fafafa',
               }}
             >
               <Empty

@@ -12,10 +12,13 @@ export const UserSearch = () => {
   const dispatch = useAppDispatch();
   const { searchResults, isLoading, contacts } = useAppSelector((state) => state.contact);
   const { user: currentUser } = useAppSelector((state) => state.auth);
+  const { mode } = useAppSelector((state) => state.theme);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   const handleSearch = async (value: string) => {
     if (!value.trim()) {
@@ -88,7 +91,7 @@ export const UserSearch = () => {
                     <Avatar
                       src={user.avatar}
                       icon={!user.avatar && <UserOutlined />}
-                      style={{ backgroundColor: '#1890ff' }}
+                      style={{ backgroundColor: isCyberpunk ? '#00f0ff' : '#1890ff' }}
                     />
                   }
                   title={user.nickname}

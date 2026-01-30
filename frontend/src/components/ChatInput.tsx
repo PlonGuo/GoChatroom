@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Input, Button, Space } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
+import { useAppSelector } from '../hooks';
 
 const { TextArea } = Input;
 
@@ -11,6 +12,9 @@ interface ChatInputProps {
 
 export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   const [message, setMessage] = useState('');
+  const { mode } = useAppSelector((state) => state.theme);
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   const handleSend = () => {
     const trimmed = message.trim();
@@ -27,7 +31,7 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   };
 
   return (
-    <div style={{ padding: 16, borderTop: '1px solid #f0f0f0', background: '#fff' }}>
+    <div style={{ padding: 16 }}>
       <Space.Compact style={{ width: '100%' }}>
         <TextArea
           value={message}
@@ -37,13 +41,19 @@ export const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           autoSize={{ minRows: 1, maxRows: 4 }}
           disabled={disabled}
           style={{ borderRadius: '8px 0 0 8px' }}
+          className="transition-all"
         />
         <Button
           type="primary"
           icon={<SendOutlined />}
           onClick={handleSend}
           disabled={disabled || !message.trim()}
-          style={{ height: 'auto', borderRadius: '0 8px 8px 0' }}
+          style={{
+            height: 'auto',
+            borderRadius: '0 8px 8px 0',
+            boxShadow: isCyberpunk ? '0 0 15px rgba(0, 240, 255, 0.5)' : undefined,
+          }}
+          className="transition-all"
         >
           Send
         </Button>

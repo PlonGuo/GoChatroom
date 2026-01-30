@@ -13,6 +13,9 @@ interface SessionListProps {
 export const SessionList = ({ onSelectSession }: SessionListProps) => {
   const dispatch = useAppDispatch();
   const { sessions, currentSession, isLoading } = useAppSelector((state) => state.session);
+  const { mode } = useAppSelector((state) => state.theme);
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   const handleSelectSession = (session: Session) => {
     dispatch(setCurrentSession(session));
@@ -56,15 +59,31 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
       renderItem={(session) => {
         const isSelected = currentSession?.uuid === session.uuid;
 
-        return (
-          <List.Item
-            onClick={() => handleSelectSession(session)}
-            style={{
+        // Theme-aware item styles
+        const getItemStyle = () => {
+          if (isCyberpunk) {
+            return {
+              cursor: 'pointer',
+              backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.1)' : undefined,
+              padding: '12px 16px',
+              borderLeft: isSelected ? '3px solid #00f0ff' : '3px solid transparent',
+              boxShadow: isSelected ? '0 0 10px rgba(0, 240, 255, 0.2)' : undefined,
+            };
+          } else {
+            return {
               cursor: 'pointer',
               backgroundColor: isSelected ? '#e6f7ff' : undefined,
               padding: '12px 16px',
-              borderLeft: isSelected ? '3px solid #1890ff' : '3px solid transparent',
-            }}
+              borderLeft: isSelected ? '3px solid #1677ff' : '3px solid transparent',
+            };
+          }
+        };
+
+        return (
+          <List.Item
+            onClick={() => handleSelectSession(session)}
+            style={getItemStyle()}
+            className={isCyberpunk && !isSelected ? 'cyberpunk-glow-hover transition-all' : 'transition-all'}
             actions={[
               <Popconfirm
                 key="delete"
@@ -87,11 +106,14 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
           >
             <List.Item.Meta
               avatar={
-                <Badge dot={session.unreadCount > 0} offset={[-4, 4]}>
+                <Badge
+                  dot={session.unreadCount > 0}
+                  offset={[-4, 4]}
+                  color={isCyberpunk ? '#ff006e' : undefined}
+                >
                   <Avatar
                     src={session.avatar}
                     icon={<UserOutlined />}
-                    style={{ backgroundColor: '#1890ff' }}
                   />
                 </Badge>
               }
@@ -113,7 +135,12 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
                     {session.lastMessage || 'No messages yet'}
                   </Text>
                   {session.unreadCount > 0 && (
-                    <Badge count={session.unreadCount} size="small" style={{ marginLeft: 8 }} />
+                    <Badge
+                      count={session.unreadCount}
+                      size="small"
+                      style={{ marginLeft: 8 }}
+                      color={isCyberpunk ? '#ff006e' : undefined}
+                    />
                   )}
                 </div>
               }

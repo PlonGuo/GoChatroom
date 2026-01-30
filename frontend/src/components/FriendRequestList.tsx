@@ -8,6 +8,9 @@ const { Text } = Typography;
 export const FriendRequestList = () => {
   const dispatch = useAppDispatch();
   const { friendRequests, isLoading } = useAppSelector((state) => state.contact);
+  const { mode } = useAppSelector((state) => state.theme);
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   const handleAccept = async (uuid: string) => {
     try {
@@ -63,7 +66,7 @@ export const FriendRequestList = () => {
               <Avatar
                 src={request.userAvatar}
                 icon={!request.userAvatar && <UserOutlined />}
-                style={{ backgroundColor: '#1890ff' }}
+                style={{ backgroundColor: isCyberpunk ? '#00f0ff' : '#1890ff' }}
               />
             }
             title={request.userName || 'Unknown User'}

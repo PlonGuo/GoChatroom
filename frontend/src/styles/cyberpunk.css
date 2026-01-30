@@ -1,0 +1,84 @@
+/* Cyberpunk theme-specific styles */
+
+/* Neon glow animations */
+@keyframes neon-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 7px #00f0ff,
+      0 0 10px #00f0ff,
+      0 0 21px #00f0ff,
+      0 0 42px #00f0ff;
+  }
+  50% {
+    text-shadow:
+      0 0 4px #00f0ff,
+      0 0 7px #00f0ff,
+      0 0 14px #00f0ff,
+      0 0 28px #00f0ff;
+  }
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 5px rgba(0, 240, 255, 0.5),
+      0 0 10px rgba(0, 240, 255, 0.3),
+      inset 0 0 5px rgba(0, 240, 255, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 10px rgba(0, 240, 255, 0.7),
+      0 0 20px rgba(0, 240, 255, 0.5),
+      inset 0 0 10px rgba(0, 240, 255, 0.3);
+  }
+}
+
+/* Utility classes */
+.cyberpunk-glow {
+  box-shadow:
+    0 0 5px rgba(0, 240, 255, 0.5),
+    0 0 10px rgba(0, 240, 255, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+.cyberpunk-glow-hover:hover {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+.cyberpunk-text-glow {
+  animation: neon-pulse 3s ease-in-out infinite;
+}
+
+/* Glassmorphism for cyberpunk theme */
+.glass-card.cyberpunk {
+  background: rgba(26, 31, 53, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+/* Glassmorphism for light theme */
+.glass-card.light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Moderate glow effect for message send */
+.message-glow {
+  animation: message-pulse 0.6s ease-out;
+}
+
+@keyframes message-pulse {
+  0% {
+    box-shadow: 0 0 0 rgba(0, 240, 255, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(0, 240, 255, 0);
+  }
+}

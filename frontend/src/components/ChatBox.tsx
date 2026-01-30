@@ -13,7 +13,10 @@ interface ChatBoxProps {
 
 export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
   const { user } = useAppSelector((state) => state.auth);
+  const { mode } = useAppSelector((state) => state.theme);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,9 +57,50 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
       {messages.map((message) => {
         const isSelf = message.sendId === user?.uuid;
 
+        // Theme-aware bubble styles
+        const getBubbleStyle = () => {
+          if (isCyberpunk) {
+            if (isSelf) {
+              return {
+                background: '#00f0ff',
+                color: '#0a0e1a',
+                padding: '8px 12px',
+                borderRadius: 12,
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 4,
+                wordBreak: 'break-word' as const,
+                boxShadow: '0 0 10px rgba(0, 240, 255, 0.3)',
+              };
+            } else {
+              return {
+                background: 'rgba(26, 31, 53, 0.7)',
+                color: '#ffffff',
+                padding: '8px 12px',
+                borderRadius: 12,
+                borderTopLeftRadius: 4,
+                borderTopRightRadius: 12,
+                wordBreak: 'break-word' as const,
+                border: '1px solid rgba(0, 240, 255, 0.3)',
+                backdropFilter: 'blur(10px)',
+              };
+            }
+          } else {
+            return {
+              background: isSelf ? '#1677ff' : '#f0f0f0',
+              color: isSelf ? '#fff' : '#000',
+              padding: '8px 12px',
+              borderRadius: 12,
+              borderTopLeftRadius: isSelf ? 12 : 4,
+              borderTopRightRadius: isSelf ? 4 : 12,
+              wordBreak: 'break-word' as const,
+            };
+          }
+        };
+
         return (
           <div
             key={message.uuid}
+            className="animate-fade-in"
             style={{
               display: 'flex',
               flexDirection: isSelf ? 'row-reverse' : 'row',
@@ -67,8 +111,8 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
             <Avatar
               src={message.sendAvatar}
               icon={!message.sendAvatar && <UserOutlined />}
-              style={{ backgroundColor: isSelf ? '#1890ff' : '#87d068', flexShrink: 0 }}
               size="small"
+              style={{ flexShrink: 0 }}
             />
             <div
               style={{
@@ -79,24 +123,14 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
               }}
             >
               {!isSelf && (
-                <Text type="secondary" style={{ fontSize: 12, marginBottom: 4 }}>
+                <Text style={{ fontSize: 12, marginBottom: 4, color: isCyberpunk ? '#ffffff' : undefined }} type={isCyberpunk ? undefined : 'secondary'}>
                   {message.sendName}
                 </Text>
               )}
-              <div
-                style={{
-                  background: isSelf ? '#1890ff' : '#f0f0f0',
-                  color: isSelf ? '#fff' : '#000',
-                  padding: '8px 12px',
-                  borderRadius: 12,
-                  borderTopLeftRadius: isSelf ? 12 : 4,
-                  borderTopRightRadius: isSelf ? 4 : 12,
-                  wordBreak: 'break-word',
-                }}
-              >
+              <div style={getBubbleStyle()}>
                 {message.content}
               </div>
-              <Text type="secondary" style={{ fontSize: 11, marginTop: 4 }}>
+              <Text style={{ fontSize: 11, marginTop: 4, color: isCyberpunk ? 'rgba(255, 255, 255, 0.7)' : undefined }} type={isCyberpunk ? undefined : 'secondary'}>
                 {formatTime(message.createdAt)}
               </Text>
             </div>

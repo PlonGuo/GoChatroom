@@ -11,6 +11,9 @@ interface ContactListProps {
 export const ContactList = ({ onStartChat }: ContactListProps) => {
   const dispatch = useAppDispatch();
   const { contacts, isLoading } = useAppSelector((state) => state.contact);
+  const { mode } = useAppSelector((state) => state.theme);
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   const handleDelete = async (contactUuid: string) => {
     try {
@@ -55,7 +58,7 @@ export const ContactList = ({ onStartChat }: ContactListProps) => {
               <Avatar
                 src={contact.avatar}
                 icon={!contact.avatar && <UserOutlined />}
-                style={{ backgroundColor: '#1890ff' }}
+                style={{ backgroundColor: isCyberpunk ? '#00f0ff' : '#1890ff' }}
               />
             }
             title={contact.nickname}

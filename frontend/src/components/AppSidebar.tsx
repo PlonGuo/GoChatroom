@@ -31,15 +31,10 @@ export const AppSidebar = () => {
   };
 
   return (
-    <Sider
-      width={200}
-      style={{
-        background: '#fff',
-        borderRight: '1px solid #f0f0f0',
-      }}
-    >
+    <Sider width={200} theme="dark">
       <Menu
         mode="inline"
+        theme="dark"
         selectedKeys={[location.pathname]}
         items={menuItems}
         onClick={handleMenuClick}

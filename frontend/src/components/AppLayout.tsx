@@ -14,12 +14,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       <AppHeader />
       <Layout>
         <AppSidebar />
-        <Content
-          style={{
-            background: '#f0f2f5',
-            minHeight: 'calc(100vh - 64px)',
-          }}
-        >
+        <Content style={{ minHeight: 'calc(100vh - 64px)' }}>
           {children}
         </Content>
       </Layout>

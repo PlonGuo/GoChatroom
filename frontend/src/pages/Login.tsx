@@ -12,7 +12,10 @@ export const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { mode } = useAppSelector((state) => state.theme);
   const [form] = Form.useForm();
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -31,11 +34,22 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <Card className="w-100 shadow-lg">
+    <div
+      className="flex justify-center items-center min-h-screen"
+      style={{
+        background: isCyberpunk
+          ? 'linear-gradient(135deg, #0a0e1a 0%, #131825 100%)'
+          : '#f0f2f5'
+      }}
+    >
+      <Card className={`w-100 ${isCyberpunk ? 'glass-card cyberpunk' : 'glass-card light'}`}>
         <Space orientation="vertical" size="large" className="w-full">
           <div className="text-center">
-            <Title level={2} className="mb-2">
+            <Title
+              level={2}
+              className={`mb-2 ${isCyberpunk ? 'cyberpunk-text-glow' : ''}`}
+              style={{ color: isCyberpunk ? '#00f0ff' : undefined }}
+            >
               GoChatroom
             </Title>
             <Text type="secondary">Sign in to your account</Text>

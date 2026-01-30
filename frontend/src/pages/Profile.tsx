@@ -21,11 +21,14 @@ interface PasswordFormValues {
 export const Profile = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { mode } = useAppSelector((state) => state.theme);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profileForm] = Form.useForm();
   const [passwordForm] = Form.useForm();
+
+  const isCyberpunk = mode === 'cyberpunk';
 
   const handleProfileSubmit = async (values: ProfileFormValues) => {
     setIsLoading(true);
@@ -64,13 +67,18 @@ export const Profile = () => {
 
   return (
     <div style={{ padding: 24, maxWidth: 600, margin: '0 auto' }}>
-      <Card>
+      <Card className={isCyberpunk ? 'glass-card cyberpunk' : ''}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Avatar
             src={user?.avatar}
             icon={!user?.avatar && <UserOutlined />}
             size={100}
-            style={{ backgroundColor: '#1890ff', marginBottom: 16 }}
+            style={{
+              backgroundColor: isCyberpunk ? '#00f0ff' : '#1890ff',
+              marginBottom: 16,
+              border: isCyberpunk ? '2px solid rgba(0, 240, 255, 0.5)' : undefined,
+              boxShadow: isCyberpunk ? '0 0 20px rgba(0, 240, 255, 0.3)' : undefined,
+            }}
           />
           <Title level={3} style={{ marginBottom: 4 }}>
             {user?.nickname}
@@ -116,14 +124,14 @@ export const Profile = () => {
             <div style={{ marginBottom: 16 }}>
               <Text type="secondary">Nickname</Text>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <UserOutlined style={{ color: '#1890ff' }} />
+                <UserOutlined style={{ color: isCyberpunk ? '#00f0ff' : '#1890ff' }} />
                 <Text strong>{user?.nickname}</Text>
               </div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <Text type="secondary">Email</Text>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <MailOutlined style={{ color: '#1890ff' }} />
+                <MailOutlined style={{ color: isCyberpunk ? '#00f0ff' : '#1890ff' }} />
                 <Text strong>{user?.email}</Text>
               </div>
             </div>
