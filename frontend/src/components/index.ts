@@ -3,3 +3,6 @@ export { GuestGuard } from './GuestGuard';
 export { AppLayout } from './AppLayout';
 export { AppHeader } from './AppHeader';
 export { AppSidebar } from './AppSidebar';
+export { ContactList } from './ContactList';
+export { FriendRequestList } from './FriendRequestList';
+export { UserSearch } from './UserSearch';
