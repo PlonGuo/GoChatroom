@@ -5,6 +5,7 @@ import (
 
 	"github.com/PlonGuo/GoChatroom/backend/internal/config"
 	"github.com/PlonGuo/GoChatroom/backend/internal/database"
+	"github.com/PlonGuo/GoChatroom/backend/internal/service/redis"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +28,12 @@ func main() {
 	if err := database.Migrate(); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
+
+	// Initialize Redis connection
+	if err := redis.Init(); err != nil {
+		log.Fatalf("Failed to initialize Redis: %v", err)
+	}
+	defer redis.Close()
 
 	r := gin.Default()
 
