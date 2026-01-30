@@ -34,7 +34,23 @@ func Setup(r *gin.Engine) {
 			protected.POST("/auth/logout", handler.Logout)
 			protected.GET("/auth/me", handler.GetCurrentUser)
 
-			// User management will be added here
+			// User management
+			users := protected.Group("/users")
+			{
+				users.GET("/search", handler.SearchUsers)
+				users.GET("/:uuid", handler.GetUser)
+				users.PUT("/profile", handler.UpdateProfile)
+				users.PUT("/password", handler.UpdatePassword)
+			}
+
+			// Admin routes
+			admin := protected.Group("/admin")
+			admin.Use(middleware.AdminOnly())
+			{
+				admin.GET("/users", handler.AdminGetUsers)
+				admin.PUT("/users/:uuid/status", handler.AdminUpdateUserStatus)
+			}
+
 			// Group management will be added here
 			// Contact management will be added here
 			// Session/Message management will be added here
