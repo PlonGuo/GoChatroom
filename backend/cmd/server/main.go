@@ -6,6 +6,7 @@ import (
 	"github.com/PlonGuo/GoChatroom/backend/internal/config"
 	"github.com/PlonGuo/GoChatroom/backend/internal/database"
 	"github.com/PlonGuo/GoChatroom/backend/internal/router"
+	"github.com/PlonGuo/GoChatroom/backend/internal/service/chat"
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/redis"
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +36,11 @@ func main() {
 		log.Fatalf("Failed to initialize Redis: %v", err)
 	}
 	defer redis.Close()
+
+	// Start WebSocket hub
+	hub := chat.GetHub()
+	go hub.Run()
+	log.Println("WebSocket hub started")
 
 	// Create Gin router
 	r := gin.Default()

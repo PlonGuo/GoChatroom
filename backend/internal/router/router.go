@@ -16,6 +16,9 @@ func Setup(r *gin.Engine) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
+	// WebSocket endpoint (uses token in query param for auth)
+	r.GET("/ws", handler.WebSocketHandler)
+
 	// API v1
 	v1 := r.Group("/api/v1")
 	{
@@ -104,6 +107,10 @@ func Setup(r *gin.Engine) {
 				messages.POST("/sessions/:sessionId/read-all", handler.MarkAllAsRead)
 				messages.GET("/unread-count", handler.GetUnreadCount)
 			}
+
+			// Online status
+			protected.GET("/online", handler.GetOnlineUsers)
+			protected.GET("/online/:uuid", handler.CheckUserOnline)
 		}
 	}
 }
