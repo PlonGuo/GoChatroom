@@ -36,5 +36,7 @@ coverage/
 *.test
 *.out
 
-# Planning docs (not part of codebase)
-docs/
+# Planning docs at root (not part of codebase)
+/docs/
+# But allow backend docs
+!backend/docs/
