@@ -51,7 +51,21 @@ func Setup(r *gin.Engine) {
 				admin.PUT("/users/:uuid/status", handler.AdminUpdateUserStatus)
 			}
 
-			// Group management will be added here
+			// Group management
+			groups := protected.Group("/groups")
+			{
+				groups.POST("", handler.CreateGroup)
+				groups.GET("/search", handler.SearchGroups)
+				groups.GET("/my", handler.GetMyGroups)
+				groups.GET("/:uuid", handler.GetGroup)
+				groups.PUT("/:uuid", handler.UpdateGroup)
+				groups.DELETE("/:uuid", handler.DissolveGroup)
+				groups.GET("/:uuid/members", handler.GetGroupMembers)
+				groups.POST("/:uuid/join", handler.JoinGroup)
+				groups.POST("/:uuid/leave", handler.LeaveGroup)
+				groups.DELETE("/:uuid/members/:memberUuid", handler.KickMember)
+			}
+
 			// Contact management will be added here
 			// Session/Message management will be added here
 		}
