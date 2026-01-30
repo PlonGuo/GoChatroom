@@ -103,7 +103,7 @@ export const Home = () => {
             borderRadius: 0,
             overflow: 'auto',
           }}
-          bodyStyle={{ padding: 0 }}
+          styles={{ body: { padding: 0 } }}
           title={
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>
@@ -136,12 +136,14 @@ export const Home = () => {
                   flexDirection: 'column',
                   overflow: 'hidden',
                 }}
-                bodyStyle={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: 0,
-                  overflow: 'hidden',
+                styles={{
+                  body: {
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: 0,
+                    overflow: 'hidden',
+                  },
                 }}
                 title={
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -19,8 +19,9 @@ func Setup(r *gin.Engine) {
 		c.JSON(200, gin.H{"status": "ok", "version": "1.0.0"})
 	})
 
-	// WebSocket endpoint (uses token in query param for auth)
+	// WebSocket endpoints (uses token in query param for auth)
 	r.GET("/ws", handler.WebSocketHandler)
+	r.GET("/ws/rtc", handler.WebRTCSignalingHandler)
 
 	// API v1
 	v1 := r.Group("/api/v1")

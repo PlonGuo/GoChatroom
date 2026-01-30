@@ -6,6 +6,7 @@ import (
 
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/chat"
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/user"
+	"github.com/PlonGuo/GoChatroom/backend/internal/service/webrtc"
 	myjwt "github.com/PlonGuo/GoChatroom/backend/pkg/jwt"
 	"github.com/PlonGuo/GoChatroom/backend/pkg/response"
 	"github.com/gin-gonic/gin"
@@ -70,4 +71,32 @@ func CheckUserOnline(c *gin.Context) {
 	hub := chat.GetHub()
 	online := hub.IsOnline(userID)
 	response.Success(c, gin.H{"online": online})
+}
+
+// WebRTCSignalingHandler handles WebRTC signaling WebSocket connections
+func WebRTCSignalingHandler(c *gin.Context) {
+	// Get token from query parameter
+	token := c.Query("token")
+	if token == "" {
+		response.Unauthorized(c, "Token is required")
+		return
+	}
+
+	// Validate token
+	claims, err := myjwt.Parse(token)
+	if err != nil {
+		response.Unauthorized(c, "Invalid token")
+		return
+	}
+
+	// Upgrade HTTP connection to WebSocket
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade WebRTC signaling connection: %v", err)
+		return
+	}
+
+	// Create signaling client
+	hub := webrtc.GetSignalingHub()
+	webrtc.NewSignalingClient(hub, conn, claims.UserID)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/PlonGuo/GoChatroom/backend/internal/router"
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/chat"
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/redis"
+	"github.com/PlonGuo/GoChatroom/backend/internal/service/webrtc"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -45,6 +46,11 @@ func main() {
 	hub := chat.GetHub()
 	go hub.Run()
 	log.Println("WebSocket hub started")
+
+	// Start WebRTC signaling hub
+	signalingHub := webrtc.GetSignalingHub()
+	go signalingHub.Run()
+	log.Println("WebRTC signaling hub started")
 
 	// Create Gin router
 	r := gin.Default()
