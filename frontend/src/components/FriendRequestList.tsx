@@ -1,4 +1,4 @@
-import { List, Avatar, Button, Empty, Space, message, Typography } from 'antd';
+import { List, Avatar, Button, Empty, message, Typography } from 'antd';
 import { UserOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { acceptFriendRequest, rejectFriendRequest } from '../store/contactSlice';
@@ -9,18 +9,18 @@ export const FriendRequestList = () => {
   const dispatch = useAppDispatch();
   const { friendRequests, isLoading } = useAppSelector((state) => state.contact);
 
-  const handleAccept = async (applyId: number) => {
+  const handleAccept = async (uuid: string) => {
     try {
-      await dispatch(acceptFriendRequest(applyId)).unwrap();
+      await dispatch(acceptFriendRequest(uuid)).unwrap();
       message.success('Friend request accepted');
     } catch (error) {
       message.error(error as string);
     }
   };
 
-  const handleReject = async (applyId: number) => {
+  const handleReject = async (uuid: string) => {
     try {
-      await dispatch(rejectFriendRequest(applyId)).unwrap();
+      await dispatch(rejectFriendRequest(uuid)).unwrap();
       message.success('Friend request rejected');
     } catch (error) {
       message.error(error as string);
@@ -43,7 +43,7 @@ export const FriendRequestList = () => {
               type="primary"
               size="small"
               icon={<CheckOutlined />}
-              onClick={() => handleAccept(request.id)}
+              onClick={() => handleAccept(request.uuid)}
             >
               Accept
             </Button>,
@@ -52,7 +52,7 @@ export const FriendRequestList = () => {
               size="small"
               danger
               icon={<CloseOutlined />}
-              onClick={() => handleReject(request.id)}
+              onClick={() => handleReject(request.uuid)}
             >
               Reject
             </Button>,
@@ -61,17 +61,18 @@ export const FriendRequestList = () => {
           <List.Item.Meta
             avatar={
               <Avatar
-                src={request.from_user?.avatar}
-                icon={!request.from_user?.avatar && <UserOutlined />}
+                src={request.userAvatar}
+                icon={!request.userAvatar && <UserOutlined />}
                 style={{ backgroundColor: '#1890ff' }}
               />
             }
-            title={request.from_user?.nickname || 'Unknown User'}
+            title={request.userName || 'Unknown User'}
             description={
-              <Space direction="vertical" size={0}>
-                <Text type="secondary">{request.from_user?.email}</Text>
+              <>
                 {request.message && <Text italic>"{request.message}"</Text>}
-              </Space>
+                <br />
+                <Text type="secondary">{request.createdAt}</Text>
+              </>
             }
           />
         </List.Item>

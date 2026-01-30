@@ -42,43 +42,120 @@ A modern real-time chat application built with Go and React, featuring instant m
 ### Prerequisites
 
 - Go 1.22+
-- Node.js 20+
+- Node.js 20.19+ or 22.12+ (Node 21 is not supported)
 - Docker and Docker Compose (for local development)
 
 ### Local Development
 
-1. Clone the repository:
+#### Step 1: Clone the Repository
+
 ```bash
 git clone https://github.com/PlonGuo/GoChatroom.git
 cd GoChatroom
 ```
 
-2. Start the local database services:
+#### Step 2: Start Database Services
+
+Start MySQL and Redis containers using Docker Compose:
+
 ```bash
 docker-compose up -d
 ```
 
-3. Set up environment variables:
+This starts:
+- **MySQL 8.0** on port `3307` (credentials: `gochatroom:gochatroom`)
+- **Redis 7** on port `6379`
+
+Verify the containers are running:
+
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
+docker-compose ps
 ```
 
-4. Run the backend:
+#### Step 3: Configure Environment Variables
+
+Copy the example environment file to the backend directory:
+
+```bash
+cp .env.example backend/.env
+```
+
+The default values work out of the box for local development:
+
+| Variable | Default Value | Description |
+|----------|---------------|-------------|
+| `APP_ENV` | `development` | Environment mode |
+| `PORT` | `8080` | Backend server port |
+| `DB_HOST` | `127.0.0.1` | MySQL host (use IP, not localhost) |
+| `DB_PORT` | `3307` | MySQL port (Docker mapped) |
+| `DB_USER` | `gochatroom` | MySQL username |
+| `DB_PASSWORD` | `gochatroom` | MySQL password |
+| `DB_NAME` | `gochatroom` | Database name |
+| `REDIS_HOST` | `localhost` | Redis host |
+| `REDIS_PORT` | `6379` | Redis port |
+| `CORS_ORIGINS` | `http://localhost:5173` | Allowed frontend origins |
+| `JWT_SECRET` | `your-secret-key...` | JWT signing key |
+
+#### Step 4: Run the Backend
+
 ```bash
 cd backend
 go mod download
 go run cmd/server/main.go
 ```
 
-5. Run the frontend:
+The backend will:
+1. Connect to MySQL and run migrations
+2. Connect to Redis
+3. Start the WebSocket hub
+4. Listen on `http://localhost:8080`
+
+#### Step 5: Run the Frontend
+
+Open a new terminal:
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-6. Open http://localhost:5173 in your browser
+The frontend development server starts on `http://localhost:5173` with hot reload enabled.
+
+#### Step 6: Access the Application
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8080 |
+| WebSocket | ws://localhost:8080/ws |
+
+Open http://localhost:5173 in your browser to use the application.
+
+#### Stopping Services
+
+```bash
+# Stop frontend/backend: Ctrl+C in their terminals
+
+# Stop and remove database containers
+docker-compose down
+
+# Stop containers but keep data volumes
+docker-compose stop
+```
+
+#### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| MySQL access denied | Use `DB_HOST=127.0.0.1` instead of `localhost` (forces TCP) |
+| Port 3307 already in use | Change `DB_PORT` in `.env` or stop the conflicting service |
+| Port 6379 already in use | Stop local Redis: `redis-cli shutdown` |
+| Database connection refused | Wait for MySQL to be ready: `docker-compose logs mysql` |
+| CORS errors in browser | Verify `CORS_ORIGINS` matches your frontend URL |
+| WebSocket connection fails | Check backend logs for WebSocket hub startup |
+| Node modules issues | Delete `node_modules` and `package-lock.json`, then `npm install` |
+| Vite crypto.hash error | Upgrade Node.js to 20.19+ or 22.12+ (Node 21 not supported) |
 
 ## Project Structure
 

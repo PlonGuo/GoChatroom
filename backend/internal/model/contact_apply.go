@@ -15,7 +15,7 @@ type ContactApply struct {
 	ContactType int8           `gorm:"type:tinyint;not null" json:"contactType"`        // 0: user, 1: group
 	Status      int8           `gorm:"type:tinyint;default:0" json:"status"`            // 0: pending, 1: approved, 2: rejected, 3: blacklisted
 	Message     string         `gorm:"type:varchar(200)" json:"message"`                // Application message
-	LastApplyAt time.Time      `json:"lastApplyAt"`
+	LastApplyAt *time.Time     `json:"lastApplyAt"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`

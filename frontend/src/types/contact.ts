@@ -18,6 +18,9 @@ export interface FriendRequest {
   createdAt: string;
 }
 
+// Alias for backwards compatibility
+export type ContactApply = FriendRequest;
+
 export interface SendFriendRequestPayload {
   contactId: string;
   message?: string;

@@ -30,7 +30,7 @@ export const IncomingCallModal = ({ visible, callerName, callerAvatar }: Incomin
         body: { textAlign: 'center', padding: 24 },
       }}
     >
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
         <Avatar
           src={callerAvatar}
           icon={!callerAvatar && <UserOutlined />}

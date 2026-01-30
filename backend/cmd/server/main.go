@@ -9,9 +9,13 @@ import (
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/chat"
 	"github.com/PlonGuo/GoChatroom/backend/internal/service/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file (ignore error if file doesn't exist in production)
+	_ = godotenv.Load()
+
 	// Load configuration
 	cfg := config.Get()
 

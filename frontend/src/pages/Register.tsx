@@ -36,19 +36,11 @@ export const Register = () => {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        background: '#f0f2f5',
-      }}
-    >
-      <Card style={{ width: 400, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div style={{ textAlign: 'center' }}>
-            <Title level={2} style={{ marginBottom: 8 }}>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <Card className="w-100 shadow-lg">
+        <Space orientation="vertical" size="large" className="w-full">
+          <div className="text-center">
+            <Title level={2} className="mb-2">
               GoChatroom
             </Title>
             <Text type="secondary">Create a new account</Text>
@@ -131,7 +123,7 @@ export const Register = () => {
             </Form.Item>
           </Form>
 
-          <div style={{ textAlign: 'center' }}>
+          <div className="text-center">
             <Text type="secondary">
               Already have an account? <Link to="/login">Sign in</Link>
             </Text>

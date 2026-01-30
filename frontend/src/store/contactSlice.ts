@@ -53,7 +53,7 @@ export const sendFriendRequest = createAsyncThunk(
   'contact/sendFriendRequest',
   async ({ uuid, message }: { uuid: string; message?: string }, { rejectWithValue }) => {
     try {
-      await contactApi.sendFriendRequest(uuid, message);
+      await contactApi.sendFriendRequest({ contactId: uuid, message });
       return uuid;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to send friend request');
@@ -63,10 +63,10 @@ export const sendFriendRequest = createAsyncThunk(
 
 export const acceptFriendRequest = createAsyncThunk(
   'contact/acceptFriendRequest',
-  async (applyId: number, { rejectWithValue }) => {
+  async (uuid: string, { rejectWithValue }) => {
     try {
-      await contactApi.acceptRequest(applyId);
-      return applyId;
+      await contactApi.acceptFriendRequest(uuid);
+      return uuid;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to accept friend request');
     }
@@ -75,10 +75,10 @@ export const acceptFriendRequest = createAsyncThunk(
 
 export const rejectFriendRequest = createAsyncThunk(
   'contact/rejectFriendRequest',
-  async (applyId: number, { rejectWithValue }) => {
+  async (uuid: string, { rejectWithValue }) => {
     try {
-      await contactApi.rejectRequest(applyId);
-      return applyId;
+      await contactApi.rejectFriendRequest(uuid);
+      return uuid;
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to reject friend request');
     }
@@ -153,11 +153,11 @@ const contactSlice = createSlice({
       })
       // Accept friend request
       .addCase(acceptFriendRequest.fulfilled, (state, action) => {
-        state.friendRequests = state.friendRequests.filter((r) => r.id !== action.payload);
+        state.friendRequests = state.friendRequests.filter((r) => r.uuid !== action.payload);
       })
       // Reject friend request
       .addCase(rejectFriendRequest.fulfilled, (state, action) => {
-        state.friendRequests = state.friendRequests.filter((r) => r.id !== action.payload);
+        state.friendRequests = state.friendRequests.filter((r) => r.uuid !== action.payload);
       })
       // Delete contact
       .addCase(deleteContact.fulfilled, (state, action) => {
