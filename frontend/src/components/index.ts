@@ -9,3 +9,5 @@ export { UserSearch } from './UserSearch';
 export { SessionList } from './SessionList';
 export { ChatBox } from './ChatBox';
 export { ChatInput } from './ChatInput';
+export { VideoCall } from './VideoCall';
+export { IncomingCallModal } from './IncomingCallModal';
