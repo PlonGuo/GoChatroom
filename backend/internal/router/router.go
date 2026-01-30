@@ -85,7 +85,25 @@ func Setup(r *gin.Engine) {
 				requests.POST("/:uuid/reject", handler.RejectFriendRequest)
 			}
 
-			// Session/Message management will be added here
+			// Session management
+			sessions := protected.Group("/sessions")
+			{
+				sessions.POST("", handler.CreateSession)
+				sessions.GET("", handler.GetSessions)
+				sessions.GET("/:uuid", handler.GetSession)
+				sessions.DELETE("/:uuid", handler.DeleteSession)
+				sessions.POST("/:uuid/read", handler.ClearSessionUnread)
+			}
+
+			// Message management
+			messages := protected.Group("/messages")
+			{
+				messages.POST("", handler.SendMessage)
+				messages.GET("", handler.GetMessages)
+				messages.POST("/:uuid/read", handler.MarkAsRead)
+				messages.POST("/sessions/:sessionId/read-all", handler.MarkAllAsRead)
+				messages.GET("/unread-count", handler.GetUnreadCount)
+			}
 		}
 	}
 }
