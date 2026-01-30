@@ -123,12 +123,27 @@ func (h *Hub) handleMessage(msg *WSMessage) {
 	case MessageTypeVideoCall:
 		displayContent = "[Video call]"
 	}
+
+	// Update sender's session
 	if msg.SessionID != "" {
 		session.UpdateLastMessage(msg.SessionID, displayContent)
 	}
 
-	// Prepare response
-	response := WSResponse{
+	// Get or create receiver's session (for direct messages)
+	var receiverSessionID string
+	if !msg.IsGroup {
+		receiverSession, err := session.GetOrCreate(msg.ReceiveID, msg.SendID, msg.SendName, msg.SendAvatar)
+		if err != nil {
+			log.Printf("Failed to get/create receiver session: %v", err)
+		} else {
+			receiverSessionID = receiverSession.UUID
+			// Update receiver's session last message
+			session.UpdateLastMessage(receiverSessionID, displayContent)
+		}
+	}
+
+	// Prepare response for sender (with sender's session ID)
+	senderResponse := WSResponse{
 		Type: "message",
 		Data: map[string]interface{}{
 			"uuid":       dbMsg.UUID,
@@ -151,11 +166,33 @@ func (h *Hub) handleMessage(msg *WSMessage) {
 
 	if msg.IsGroup {
 		// Group message: send to all group members
-		h.broadcastToGroup(msg.ReceiveID, response)
+		h.broadcastToGroup(msg.ReceiveID, senderResponse)
 	} else {
-		// Direct message: send to sender and receiver
-		h.sendToUser(msg.SendID, response)
-		h.sendToUser(msg.ReceiveID, response)
+		// Direct message: send to sender with their session ID
+		h.sendToUser(msg.SendID, senderResponse)
+
+		// Send to receiver with their session ID
+		receiverResponse := WSResponse{
+			Type: "message",
+			Data: map[string]interface{}{
+				"uuid":       dbMsg.UUID,
+				"type":       msg.Type,
+				"content":    msg.Content,
+				"url":        msg.URL,
+				"sendId":     msg.SendID,
+				"sendName":   msg.SendName,
+				"sendAvatar": msg.SendAvatar,
+				"receiveId":  msg.ReceiveID,
+				"sessionId":  receiverSessionID,
+				"fileType":   msg.FileType,
+				"fileName":   msg.FileName,
+				"fileSize":   msg.FileSize,
+				"avData":     msg.AVData,
+				"createdAt":  dbMsg.CreatedAt.Format("2006-01-02 15:04:05"),
+			},
+			Timestamp: time.Now().Unix(),
+		}
+		h.sendToUser(msg.ReceiveID, receiverResponse)
 	}
 }
 

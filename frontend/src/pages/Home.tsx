@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Card, Typography, Empty, Badge, Button, Tooltip } from 'antd';
 import { MessageOutlined, WifiOutlined, DisconnectOutlined, VideoCameraOutlined } from '@ant-design/icons';
 import { SessionList, ChatBox, ChatInput, VideoCall, IncomingCallModal } from '../components';
@@ -7,28 +7,51 @@ import { fetchSessions, fetchMessages, addMessage } from '../store/sessionSlice'
 import { websocketService } from '../services/websocket';
 import { webrtcService } from '../services';
 import type { CallState } from '../services';
+import type { Message } from '../types';
 
 const { Title, Text } = Typography;
 
 export const Home = () => {
   const dispatch = useAppDispatch();
   const { token, user } = useAppSelector((state) => state.auth);
-  const { currentSession, messages, isLoadingMessages } = useAppSelector((state) => state.session);
+  const { sessions, currentSession, messages, isLoadingMessages } = useAppSelector((state) => state.session);
   const [isConnected, setIsConnected] = useState(false);
   const [callState, setCallState] = useState<CallState>(webrtcService.getState());
   const [callerInfo, setCallerInfo] = useState<{ name?: string; avatar?: string }>({});
+
+  // Track sessions for checking if new sessions need to be fetched
+  const sessionsRef = useRef(sessions);
+  useEffect(() => {
+    sessionsRef.current = sessions;
+  }, [sessions]);
 
   useEffect(() => {
     dispatch(fetchSessions());
   }, [dispatch]);
 
+  // Handle incoming WebSocket messages
+  const handleIncomingMessage = useCallback(
+    (message: Message) => {
+      dispatch(addMessage(message));
+
+      // Check if we have this session in our list
+      const hasSession =
+        sessionsRef.current.some((s) => s.uuid === message.sessionId) ||
+        sessionsRef.current.some((s) => s.receiveId === message.sendId);
+
+      // If message is for a session we don't have, refresh sessions
+      if (!hasSession && message.sendId !== user?.uuid) {
+        dispatch(fetchSessions());
+      }
+    },
+    [dispatch, user?.uuid]
+  );
+
   useEffect(() => {
     if (token) {
       websocketService.connect(token);
 
-      const unsubMessage = websocketService.onMessage((message) => {
-        dispatch(addMessage(message));
-      });
+      const unsubMessage = websocketService.onMessage(handleIncomingMessage);
 
       const unsubConnect = websocketService.onConnect(() => {
         setIsConnected(true);
@@ -45,7 +68,7 @@ export const Home = () => {
         websocketService.disconnect();
       };
     }
-  }, [token, dispatch]);
+  }, [token, handleIncomingMessage]);
 
   useEffect(() => {
     if (currentSession) {

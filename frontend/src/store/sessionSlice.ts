@@ -91,14 +91,41 @@ const sessionSlice = createSlice({
       state.messages = [];
     },
     addMessage: (state, action: PayloadAction<Message>) => {
-      state.messages.push(action.payload);
+      const message = action.payload;
+
+      // Only add to current messages if it belongs to the current session
+      // Match by sessionId OR by participants (sendId/receiveId matching currentSession's receiveId)
+      if (state.currentSession) {
+        const isForCurrentSession =
+          message.sessionId === state.currentSession.uuid ||
+          // Also match by participants in case sessionId doesn't match
+          (message.sendId === state.currentSession.receiveId ||
+            message.receiveId === state.currentSession.receiveId);
+
+        if (isForCurrentSession) {
+          // Avoid duplicate messages
+          const exists = state.messages.some((m) => m.uuid === message.uuid);
+          if (!exists) {
+            state.messages.push(message);
+          }
+        }
+      }
+
       // Update last message in session list
-      const session = state.sessions.find((s) => s.uuid === action.payload.sessionId);
+      let session = state.sessions.find((s) => s.uuid === message.sessionId);
+
+      // If session not found by sessionId, try to find by participants
+      if (!session) {
+        session = state.sessions.find(
+          (s) => s.receiveId === message.sendId || s.receiveId === message.receiveId
+        );
+      }
+
       if (session) {
-        session.lastMessage = action.payload.content;
-        session.lastMessageAt = action.payload.createdAt;
+        session.lastMessage = message.content;
+        session.lastMessageAt = message.createdAt;
         // Move session to top
-        state.sessions = [session, ...state.sessions.filter((s) => s.uuid !== session.uuid)];
+        state.sessions = [session, ...state.sessions.filter((s) => s.uuid !== session!.uuid)];
       }
     },
     clearMessages: (state) => {

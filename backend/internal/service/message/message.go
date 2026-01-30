@@ -87,14 +87,24 @@ func Create(userID, nickname, avatar string, req CreateRequest) (*MessageRespons
 	return toMessageResponse(&msg), nil
 }
 
-// GetBySessionID returns all messages for a session
+// GetBySessionID returns all messages for a session by looking up the session's participants
 func GetBySessionID(sessionID string, limit, offset int) ([]MessageResponse, error) {
 	if limit <= 0 {
 		limit = 50
 	}
 
+	// First, get the session to find the participants
+	sess, err := session.GetByUUID(sessionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get session: %w", err)
+	}
+
+	// Query messages between the two participants (both directions)
 	var messages []model.Message
-	if err := database.DB.Where("session_id = ?", sessionID).
+	if err := database.DB.Where(
+		"(send_id = ? AND receive_id = ?) OR (send_id = ? AND receive_id = ?)",
+		sess.SendID, sess.ReceiveID, sess.ReceiveID, sess.SendID,
+	).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
