@@ -69,12 +69,12 @@ export const FriendRequestList = () => {
                 style={{ backgroundColor: isCyberpunk ? '#00f0ff' : '#1890ff' }}
               />
             }
-            title={request.userName || 'Unknown User'}
+            title={<Text style={{ color: isCyberpunk ? '#ffffff' : undefined }}>{request.userName || 'Unknown User'}</Text>}
             description={
               <>
-                {request.message && <Text italic>"{request.message}"</Text>}
+                {request.message && <Text italic style={{ color: isCyberpunk ? '#e0e0e0' : undefined }}>"{request.message}"</Text>}
                 <br />
-                <Text type="secondary">{request.createdAt}</Text>
+                <Text type={isCyberpunk ? undefined : 'secondary'} style={{ color: isCyberpunk ? '#e0e0e0' : undefined }}>{request.createdAt}</Text>
               </>
             }
           />

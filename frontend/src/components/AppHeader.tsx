@@ -1,5 +1,5 @@
 import { Layout, Avatar, Dropdown, Typography, Space } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { logout } from '../store/authSlice';
@@ -18,19 +18,6 @@ export const AppHeader = () => {
   };
 
   const menuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Profile',
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-    },
-    {
-      type: 'divider',
-    },
     {
       key: 'logout',
       icon: <LogoutOutlined />,

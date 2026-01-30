@@ -1,5 +1,7 @@
-import { List, Avatar, Button, Empty, Popconfirm, message } from 'antd';
+import { List, Avatar, Button, Empty, Popconfirm, message, Typography } from 'antd';
 import { UserOutlined, DeleteOutlined, MessageOutlined } from '@ant-design/icons';
+
+const { Text } = Typography;
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { deleteContact } from '../store/contactSlice';
 import type { Contact } from '../types';
@@ -61,8 +63,8 @@ export const ContactList = ({ onStartChat }: ContactListProps) => {
                 style={{ backgroundColor: isCyberpunk ? '#00f0ff' : '#1890ff' }}
               />
             }
-            title={contact.nickname}
-            description={contact.signature}
+            title={<Text style={{ color: isCyberpunk ? '#ffffff' : undefined }}>{contact.nickname}</Text>}
+            description={<Text type={isCyberpunk ? undefined : 'secondary'} style={{ color: isCyberpunk ? '#e0e0e0' : undefined }}>{contact.signature}</Text>}
           />
         </List.Item>
       )}

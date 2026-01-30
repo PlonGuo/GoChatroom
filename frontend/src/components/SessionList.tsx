@@ -119,11 +119,11 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
               }
               title={
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text strong ellipsis style={{ maxWidth: 150 }}>
+                  <Text strong ellipsis style={{ maxWidth: 150, color: isCyberpunk ? '#ffffff' : undefined }}>
                     {session.receiveName}
                   </Text>
                   {session.lastMessageAt && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type={isCyberpunk ? undefined : 'secondary'} style={{ fontSize: 12, color: isCyberpunk ? '#e0e0e0' : undefined }}>
                       {formatTime(session.lastMessageAt)}
                     </Text>
                   )}
@@ -131,7 +131,7 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
               }
               description={
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text type="secondary" ellipsis style={{ maxWidth: 150 }}>
+                  <Text type={isCyberpunk ? undefined : 'secondary'} ellipsis style={{ maxWidth: 150, color: isCyberpunk ? '#e0e0e0' : undefined }}>
                     {session.lastMessage || 'No messages yet'}
                   </Text>
                   {session.unreadCount > 0 && (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input, List, Avatar, Button, Empty, message, Modal, Form } from 'antd';
+import { Input, List, Avatar, Button, Empty, message, Modal, Form, Typography } from 'antd';
 import { UserOutlined, UserAddOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { searchUsers, sendFriendRequest, clearSearchResults } from '../store/contactSlice';
@@ -7,6 +7,7 @@ import type { User } from '../types';
 
 const { Search } = Input;
 const { TextArea } = Input;
+const { Text } = Typography;
 
 export const UserSearch = () => {
   const dispatch = useAppDispatch();
@@ -94,8 +95,8 @@ export const UserSearch = () => {
                       style={{ backgroundColor: isCyberpunk ? '#00f0ff' : '#1890ff' }}
                     />
                   }
-                  title={user.nickname}
-                  description={user.email}
+                  title={<Text style={{ color: isCyberpunk ? '#ffffff' : undefined }}>{user.nickname}</Text>}
+                  description={<Text type={isCyberpunk ? undefined : 'secondary'} style={{ color: isCyberpunk ? '#e0e0e0' : undefined }}>{user.email}</Text>}
                 />
               </List.Item>
             );
