@@ -33,3 +33,7 @@ export const updatePassword = async (data: UpdatePasswordRequest): Promise<void>
     throw new Error(response.data.message);
   }
 };
+
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  return updatePassword({ old_password: currentPassword, new_password: newPassword });
+};
