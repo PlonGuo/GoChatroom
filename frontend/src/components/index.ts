@@ -7,3 +7,5 @@ export { ContactList } from './ContactList';
 export { FriendRequestList } from './FriendRequestList';
 export { UserSearch } from './UserSearch';
 export { SessionList } from './SessionList';
+export { ChatBox } from './ChatBox';
+export { ChatInput } from './ChatInput';
