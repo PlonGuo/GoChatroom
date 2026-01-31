@@ -30,6 +30,7 @@ class WebRTCService {
   private isInCall = false;
   private isCalling = false;
   private isReceivingCall = false;
+  private pendingIceCandidates: RTCIceCandidateInit[] = []; // Queue for ICE candidates that arrive before peer connection
 
   // Default fallback STUN servers
   private iceServers: RTCIceServer[] = [
@@ -145,13 +146,26 @@ class WebRTCService {
     this.isReceivingCall = false;
     this.notifyStateChange();
 
+    // Prepare local media stream but DON'T create an offer
+    // The caller (User A) will send the offer, we just need to be ready
+    try {
+      this.localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
+      this.notifyStateChange();
+    } catch (error) {
+      console.error('Failed to get media stream:', error);
+      this.cleanup();
+      return;
+    }
+
+    // Tell the caller we accepted - they will send the offer
     this.sendSignaling({
       type: 'call-accepted',
       from: this.currentUserId,
       to: this.remoteUserId,
     });
-
-    await this.startCall();
   }
 
   rejectCall() {
@@ -210,9 +224,15 @@ class WebRTCService {
       };
 
       this.peerConnection.onconnectionstatechange = () => {
-        if (this.peerConnection?.connectionState === 'disconnected') {
+        console.log('Connection state:', this.peerConnection?.connectionState);
+        const state = this.peerConnection?.connectionState;
+        if (state === 'disconnected' || state === 'failed' || state === 'closed') {
           this.endCall();
         }
+      };
+
+      this.peerConnection.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', this.peerConnection?.iceConnectionState);
       };
 
       const offer = await this.peerConnection.createOffer();
@@ -236,12 +256,16 @@ class WebRTCService {
 
   private async handleOffer(offer: RTCSessionDescriptionInit) {
     try {
-      if (!this.peerConnection) {
+      // Get media stream if we don't have one yet (fallback for edge cases)
+      if (!this.localStream) {
         this.localStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
+      }
 
+      // Create peer connection if needed
+      if (!this.peerConnection) {
         this.peerConnection = new RTCPeerConnection({ iceServers: this.iceServers });
 
         this.localStream.getTracks().forEach((track) => {
@@ -263,9 +287,32 @@ class WebRTCService {
             });
           }
         };
+
+        this.peerConnection.onconnectionstatechange = () => {
+          console.log('Connection state:', this.peerConnection?.connectionState);
+          const state = this.peerConnection?.connectionState;
+          if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+            this.endCall();
+          }
+        };
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+          console.log('ICE connection state:', this.peerConnection?.iceConnectionState);
+        };
+      }
+
+      // Only set remote description if we're in a state that can accept an offer
+      const signalingState = this.peerConnection.signalingState;
+      if (signalingState !== 'stable' && signalingState !== 'have-local-offer') {
+        console.warn(`Cannot handle offer in signaling state: ${signalingState}`);
+        return;
       }
 
       await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+
+      // Flush any ICE candidates that arrived before we were ready
+      await this.flushPendingIceCandidates();
+
       const answer = await this.peerConnection.createAnswer();
       await this.peerConnection.setLocalDescription(answer);
 
@@ -285,7 +332,22 @@ class WebRTCService {
 
   private async handleAnswer(answer: RTCSessionDescriptionInit) {
     try {
-      await this.peerConnection?.setRemoteDescription(new RTCSessionDescription(answer));
+      if (!this.peerConnection) {
+        console.warn('No peer connection to handle answer');
+        return;
+      }
+
+      // Only accept answer if we're waiting for one (have-local-offer state)
+      const signalingState = this.peerConnection.signalingState;
+      if (signalingState !== 'have-local-offer') {
+        console.warn(`Cannot handle answer in signaling state: ${signalingState}`);
+        return;
+      }
+
+      await this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+
+      // Flush any ICE candidates that arrived before we were ready
+      await this.flushPendingIceCandidates();
     } catch (error) {
       console.error('Failed to handle answer:', error);
     }
@@ -293,10 +355,30 @@ class WebRTCService {
 
   private async handleIceCandidate(candidate: RTCIceCandidateInit) {
     try {
-      await this.peerConnection?.addIceCandidate(new RTCIceCandidate(candidate));
+      // Queue ICE candidates if peer connection isn't ready yet
+      if (!this.peerConnection || !this.peerConnection.remoteDescription) {
+        console.log('Queuing ICE candidate (peer connection not ready)');
+        this.pendingIceCandidates.push(candidate);
+        return;
+      }
+      await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
     } catch (error) {
       console.error('Failed to add ICE candidate:', error);
     }
+  }
+
+  private async flushPendingIceCandidates() {
+    if (!this.peerConnection) return;
+
+    console.log(`Flushing ${this.pendingIceCandidates.length} pending ICE candidates`);
+    for (const candidate of this.pendingIceCandidates) {
+      try {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (error) {
+        console.error('Failed to add queued ICE candidate:', error);
+      }
+    }
+    this.pendingIceCandidates = [];
   }
 
   private sendSignaling(data: SignalingData) {
@@ -321,6 +403,7 @@ class WebRTCService {
     this.isInCall = false;
     this.isCalling = false;
     this.isReceivingCall = false;
+    this.pendingIceCandidates = [];
   }
 
   private notifyStateChange() {

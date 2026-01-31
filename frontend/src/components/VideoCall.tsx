@@ -27,22 +27,36 @@ export const VideoCall = ({ onClose }: VideoCallProps) => {
 
   const isCyberpunk = mode === 'cyberpunk';
 
+  // Set video sources when streams change
+  useEffect(() => {
+    if (localVideoRef.current && callState.localStream) {
+      localVideoRef.current.srcObject = callState.localStream;
+    }
+  }, [callState.localStream]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current && callState.remoteStream) {
+      remoteVideoRef.current.srcObject = callState.remoteStream;
+    }
+  }, [callState.remoteStream]);
+
   useEffect(() => {
     const unsubscribe = webrtcService.onStateChange((state) => {
       setCallState(state);
-
-      if (localVideoRef.current && state.localStream) {
-        localVideoRef.current.srcObject = state.localStream;
-      }
-
-      if (remoteVideoRef.current && state.remoteStream) {
-        remoteVideoRef.current.srcObject = state.remoteStream;
-      }
 
       if (!state.isInCall && !state.isCalling && !state.isReceivingCall) {
         onClose();
       }
     });
+
+    // Set initial state
+    const initialState = webrtcService.getState();
+    if (localVideoRef.current && initialState.localStream) {
+      localVideoRef.current.srcObject = initialState.localStream;
+    }
+    if (remoteVideoRef.current && initialState.remoteStream) {
+      remoteVideoRef.current.srcObject = initialState.remoteStream;
+    }
 
     return () => {
       unsubscribe();
