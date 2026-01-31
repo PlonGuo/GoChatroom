@@ -31,8 +31,12 @@ export const fetchFriendRequests = createAsyncThunk(
   'contact/fetchFriendRequests',
   async (_, { rejectWithValue }) => {
     try {
-      return await contactApi.getPendingRequests();
+      console.log('[Redux] Fetching friend requests...');
+      const result = await contactApi.getPendingRequests();
+      console.log('[Redux] Friend requests fetched:', result);
+      return result;
     } catch (error) {
+      console.error('[Redux] Failed to fetch friend requests:', error);
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch friend requests');
     }
   }
@@ -125,13 +129,16 @@ const contactSlice = createSlice({
       })
       // Fetch friend requests
       .addCase(fetchFriendRequests.pending, (state) => {
+        console.log('[Redux] fetchFriendRequests.pending');
         state.isLoading = true;
       })
       .addCase(fetchFriendRequests.fulfilled, (state, action) => {
+        console.log('[Redux] fetchFriendRequests.fulfilled - New friend requests:', action.payload);
         state.isLoading = false;
         state.friendRequests = action.payload;
       })
       .addCase(fetchFriendRequests.rejected, (state, action) => {
+        console.log('[Redux] fetchFriendRequests.rejected - Error:', action.payload);
         state.isLoading = false;
         state.error = action.payload as string;
       })

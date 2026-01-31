@@ -1,132 +1,64 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, Typography, Empty, Badge, Button, Tooltip } from 'antd';
 import { MessageOutlined, WifiOutlined, DisconnectOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { SessionList, ChatBox, ChatInput, VideoCall, IncomingCallModal } from '../components';
+import { SessionList, ChatBox, ChatInput } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { fetchSessions, fetchMessages, addMessage } from '../store/sessionSlice';
-import { fetchContacts, fetchFriendRequests } from '../store/contactSlice';
+import { fetchSessions, fetchMessages, clearSessionUnread } from '../store/sessionSlice';
 import { websocketService } from '../services/websocket';
 import { webrtcService } from '../services';
-import type { CallState } from '../services';
-import type { Message } from '../types';
 
 const { Title, Text } = Typography;
 
 export const Home = () => {
   const dispatch = useAppDispatch();
-  const { token, user } = useAppSelector((state) => state.auth);
-  const { sessions, currentSession, messages, isLoadingMessages } = useAppSelector((state) => state.session);
+  const { token } = useAppSelector((state) => state.auth);
+  const { currentSession, messages, isLoadingMessages } = useAppSelector((state) => state.session);
   const { mode } = useAppSelector((state) => state.theme);
   const [isConnected, setIsConnected] = useState(false);
-  const [callState, setCallState] = useState<CallState>(webrtcService.getState());
-  const [callerInfo, setCallerInfo] = useState<{ name?: string; avatar?: string }>({});
 
   const isCyberpunk = mode === 'cyberpunk';
-
-  // Track sessions for checking if new sessions need to be fetched
-  const sessionsRef = useRef(sessions);
-  useEffect(() => {
-    sessionsRef.current = sessions;
-  }, [sessions]);
 
   useEffect(() => {
     dispatch(fetchSessions());
   }, [dispatch]);
 
-  // Handle incoming WebSocket messages
-  const handleIncomingMessage = useCallback(
-    (message: Message) => {
-      dispatch(addMessage(message));
-
-      // Check if we have this session in our list
-      const hasSession =
-        sessionsRef.current.some((s) => s.uuid === message.sessionId) ||
-        sessionsRef.current.some((s) => s.receiveId === message.sendId);
-
-      // If message is for a session we don't have, refresh sessions
-      if (!hasSession && message.sendId !== user?.uuid) {
-        dispatch(fetchSessions());
-      }
-    },
-    [dispatch, user?.uuid]
-  );
-
+  // Monitor WebSocket connection status (managed in AppLayout)
   useEffect(() => {
-    if (token) {
-      websocketService.connect(token);
+    if (!token) return;
 
-      const unsubMessage = websocketService.onMessage(handleIncomingMessage);
+    const unsubConnect = websocketService.onConnect(() => {
+      console.log('[Home] WebSocket connected');
+      setIsConnected(true);
+    });
 
-      // Listen for friend request events
-      const unsubFriendRequest = websocketService.onEvent('friend_request', () => {
-        // Refresh friend requests when a new request is received
-        dispatch(fetchFriendRequests());
-      });
+    const unsubDisconnect = websocketService.onDisconnect(() => {
+      console.log('[Home] WebSocket disconnected');
+      setIsConnected(false);
+    });
 
-      const unsubFriendRequestAccepted = websocketService.onEvent('friend_request_accepted', () => {
-        // Refresh contacts when a friend request is accepted
-        dispatch(fetchContacts());
-      });
+    // Check initial connection status
+    setIsConnected(websocketService.isConnected());
 
-      const unsubConnect = websocketService.onConnect(() => {
-        setIsConnected(true);
-      });
-
-      const unsubDisconnect = websocketService.onDisconnect(() => {
-        setIsConnected(false);
-      });
-
-      return () => {
-        unsubMessage();
-        unsubFriendRequest();
-        unsubFriendRequestAccepted();
-        unsubConnect();
-        unsubDisconnect();
-        websocketService.disconnect();
-      };
-    }
-  }, [token, handleIncomingMessage, dispatch]);
+    return () => {
+      unsubConnect();
+      unsubDisconnect();
+    };
+  }, [token]);
 
   useEffect(() => {
     if (currentSession) {
       dispatch(fetchMessages({ sessionId: currentSession.uuid }));
+      // Clear unread count when opening a session
+      if (currentSession.unreadCount > 0) {
+        dispatch(clearSessionUnread(currentSession.uuid));
+      }
     }
   }, [currentSession, dispatch]);
-
-  // WebRTC connection for video calls
-  useEffect(() => {
-    if (token && user?.uuid) {
-      // Connect to WebRTC signaling server
-      webrtcService.connect(token, user.uuid).catch((error) => {
-        console.error('Failed to connect to WebRTC signaling:', error);
-      });
-
-      const unsubStateChange = webrtcService.onStateChange((state) => {
-        setCallState(state);
-        // When receiving a call, try to get caller info from current session
-        if (state.isReceivingCall && currentSession && state.remoteUserId === currentSession.receiveId) {
-          setCallerInfo({
-            name: currentSession.receiveName,
-            avatar: currentSession.avatar,
-          });
-        }
-      });
-
-      return () => {
-        unsubStateChange();
-        webrtcService.disconnect();
-      };
-    }
-  }, [token, user?.uuid, currentSession]);
 
   const handleStartVideoCall = () => {
     if (currentSession) {
       webrtcService.initiateCall(currentSession.receiveId);
     }
-  };
-
-  const handleCloseVideoCall = () => {
-    setCallState(webrtcService.getState());
   };
 
   const handleSendMessage = (content: string) => {
@@ -244,17 +176,6 @@ export const Home = () => {
         </div>
       </div>
 
-      {/* Video Call UI */}
-      {(callState.isInCall || callState.isCalling) && (
-        <VideoCall onClose={handleCloseVideoCall} />
-      )}
-
-      {/* Incoming Call Modal */}
-      <IncomingCallModal
-        visible={callState.isReceivingCall}
-        callerName={callerInfo.name}
-        callerAvatar={callerInfo.avatar}
-      />
     </>
   );
 };

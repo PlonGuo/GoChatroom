@@ -1,0 +1,1 @@
+export { GlobalVideoCall } from './GlobalVideoCall';

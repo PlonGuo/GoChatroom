@@ -1,0 +1,108 @@
+import { useEffect, useState, useCallback } from 'react';
+import { useAppSelector } from '../../hooks';
+import { webrtcService, soundService } from '../../services';
+import type { CallState } from '../../services';
+import { VideoCall } from '../VideoCall';
+import { IncomingCallModal } from '../IncomingCallModal';
+
+interface CallerInfo {
+  name?: string;
+  avatar?: string;
+}
+
+export const GlobalVideoCall = () => {
+  const { token, user } = useAppSelector((state) => state.auth);
+  const { sessions } = useAppSelector((state) => state.session);
+  const [callState, setCallState] = useState<CallState>(webrtcService.getState());
+  const [callerInfo, setCallerInfo] = useState<CallerInfo>({});
+
+  // Find caller info from sessions list when receiving a call
+  const findCallerInfo = useCallback(
+    (remoteUserId: string | null): CallerInfo => {
+      if (!remoteUserId) return {};
+
+      // Search through sessions to find the caller
+      const session = sessions.find((s) => s.receiveId === remoteUserId);
+      if (session) {
+        return {
+          name: session.receiveName,
+          avatar: session.avatar,
+        };
+      }
+
+      return {};
+    },
+    [sessions]
+  );
+
+  // WebRTC connection for video calls - stays active across all pages
+  useEffect(() => {
+    if (!token || !user?.uuid) return;
+
+    console.log('[GlobalVideoCall] Initializing WebRTC connection');
+
+    // Connect to WebRTC signaling server
+    webrtcService.connect(token, user.uuid).catch((error) => {
+      console.error('Failed to connect to WebRTC signaling:', error);
+    });
+
+    const unsubStateChange = webrtcService.onStateChange((state) => {
+      console.log('[GlobalVideoCall] Call state changed:', state);
+      setCallState(state);
+
+      // When receiving a call, find caller info from sessions
+      if (state.isReceivingCall && state.remoteUserId) {
+        const info = findCallerInfo(state.remoteUserId);
+        setCallerInfo(info);
+      }
+    });
+
+    return () => {
+      console.log('[GlobalVideoCall] Cleaning up WebRTC connection');
+      unsubStateChange();
+      webrtcService.disconnect();
+    };
+  }, [token, user?.uuid, findCallerInfo]);
+
+  // Update caller info when sessions change (in case caller info wasn't available initially)
+  useEffect(() => {
+    if (callState.isReceivingCall && callState.remoteUserId) {
+      const info = findCallerInfo(callState.remoteUserId);
+      setCallerInfo(info);
+    }
+  }, [sessions, callState.isReceivingCall, callState.remoteUserId, findCallerInfo]);
+
+  // Play/stop ringtone when receiving a call
+  useEffect(() => {
+    if (callState.isReceivingCall) {
+      console.log('[GlobalVideoCall] Starting ringtone');
+      soundService.startRingtone();
+    } else {
+      soundService.stopRingtone();
+    }
+
+    return () => {
+      soundService.stopRingtone();
+    };
+  }, [callState.isReceivingCall]);
+
+  const handleCloseVideoCall = () => {
+    setCallState(webrtcService.getState());
+  };
+
+  return (
+    <>
+      {/* Video Call UI - shows during active call or while calling */}
+      {(callState.isInCall || callState.isCalling) && (
+        <VideoCall onClose={handleCloseVideoCall} />
+      )}
+
+      {/* Incoming Call Modal - shows when receiving a call */}
+      <IncomingCallModal
+        visible={callState.isReceivingCall}
+        callerName={callerInfo.name}
+        callerAvatar={callerInfo.avatar}
+      />
+    </>
+  );
+};

@@ -12,3 +12,4 @@ export { ChatInput } from './ChatInput';
 export { VideoCall } from './VideoCall';
 export { IncomingCallModal } from './IncomingCallModal';
 export { ThemeToggle } from './ThemeToggle';
+export { GlobalVideoCall } from './GlobalVideoCall';
