@@ -75,12 +75,18 @@ export const VideoCall = ({ onClose }: VideoCallProps) => {
         bottom: 0,
         backgroundColor: '#000',
         zIndex: 1000,
-        display: 'flex',
-        flexDirection: 'column',
       }}
     >
       {/* Remote Video (Full Screen) */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      >
         {callState.remoteStream ? (
           <video
             ref={remoteVideoRef}
@@ -144,15 +150,21 @@ export const VideoCall = ({ onClose }: VideoCallProps) => {
       {/* Controls */}
       <div
         style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
           padding: 24,
+          paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
           display: 'flex',
           justifyContent: 'center',
           background: isCyberpunk
             ? 'linear-gradient(transparent, rgba(10, 14, 26, 0.9))'
             : 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+          pointerEvents: 'none',
         }}
       >
-        <Space size="large">
+        <Space size="large" style={{ pointerEvents: 'auto' }}>
           <Button
             type={isAudioEnabled ? 'default' : 'primary'}
             danger={!isAudioEnabled}
