@@ -96,7 +96,10 @@ export const Home = () => {
   // WebRTC connection for video calls
   useEffect(() => {
     if (token && user?.uuid) {
-      webrtcService.connect(token, user.uuid);
+      // Connect to WebRTC signaling server
+      webrtcService.connect(token, user.uuid).catch((error) => {
+        console.error('Failed to connect to WebRTC signaling:', error);
+      });
 
       const unsubStateChange = webrtcService.onStateChange((state) => {
         setCallState(state);

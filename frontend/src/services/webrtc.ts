@@ -1,3 +1,5 @@
+import { getICEServers, type ICEServer } from '../api/webrtcApi';
+
 type SignalingHandler = (data: SignalingData) => void;
 
 interface SignalingData {
@@ -29,15 +31,41 @@ class WebRTCService {
   private isCalling = false;
   private isReceivingCall = false;
 
-  private readonly iceServers: RTCIceServer[] = [
+  // Default fallback STUN servers
+  private iceServers: RTCIceServer[] = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
   ];
 
-  connect(token: string, userId: string) {
+  async connect(token: string, userId: string) {
     this.currentUserId = userId;
-    const wsUrl = `${import.meta.env.VITE_WS_URL || 'ws://localhost:8080'}/ws/rtc?token=${token}`;
-    this.ws = new WebSocket(wsUrl);
+
+    // Fetch ICE servers from backend
+    try {
+      const servers = await getICEServers();
+      this.iceServers = servers.map((server: ICEServer) => ({
+        urls: server.urls,
+        username: server.username,
+        credential: server.credential,
+      }));
+      console.log('Loaded ICE servers:', this.iceServers);
+    } catch (error) {
+      console.warn('Failed to fetch ICE servers, using defaults:', error);
+    }
+
+    // Use WSS in production, WS in development
+    const baseUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080';
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = baseUrl.startsWith('http')
+      ? baseUrl.replace(/^http/, wsProtocol.replace(':', ''))
+      : baseUrl.startsWith('ws')
+      ? baseUrl
+      : `${wsProtocol}//${window.location.host}`;
+
+    const fullWsUrl = `${wsUrl}/ws/rtc?token=${token}`;
+    console.log('Connecting to WebRTC signaling:', fullWsUrl);
+
+    this.ws = new WebSocket(fullWsUrl);
 
     this.ws.onmessage = (event) => {
       try {
@@ -46,6 +74,10 @@ class WebRTCService {
       } catch (error) {
         console.error('Failed to parse WebRTC signaling message:', error);
       }
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebRTC signaling error:', error);
     };
 
     this.ws.onclose = () => {

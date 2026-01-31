@@ -72,3 +72,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Password toggle icon styling for cyberpunk theme */
+body.theme-cyberpunk .ant-input-password-icon {
+  color: #ffffff !important;
+}
+
+body.theme-cyberpunk .ant-input-password-icon:hover {
+  color: #00f0ff !important;
+}

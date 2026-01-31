@@ -41,6 +41,9 @@ func Setup(r *gin.Engine) {
 			protected.POST("/auth/logout", handler.Logout)
 			protected.GET("/auth/me", handler.GetCurrentUser)
 
+			// WebRTC
+			protected.GET("/webrtc/ice-servers", handler.GetICEServers)
+
 			// User management
 			users := protected.Group("/users")
 			{
