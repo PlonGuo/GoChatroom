@@ -1,4 +1,5 @@
 import type { Message } from '../types';
+import { soundService } from './soundService';
 
 type MessageHandler = (message: Message) => void;
 type EventHandler = (data: unknown) => void;
@@ -35,15 +36,22 @@ class WebSocketService {
 
     this.ws.onmessage = (event) => {
       try {
+        console.log('[WebSocket] Raw message received:', event.data);
         const data = JSON.parse(event.data) as WebSocketMessage;
+        console.log('[WebSocket] Parsed message:', data);
+
         if (data.type === 'message') {
           const message = data.data as Message;
+          console.log(`[WebSocket] Calling ${this.messageHandlers.length} message handlers`);
           this.messageHandlers.forEach((handler) => handler(message));
         } else {
           // Handle other event types (friend_request, friend_request_accepted, etc.)
           const handlers = this.eventHandlers.get(data.type);
+          console.log(`[WebSocket] Event type: ${data.type}, Handlers registered: ${handlers?.length || 0}`);
           if (handlers) {
             handlers.forEach((handler) => handler(data.data));
+          } else {
+            console.warn(`[WebSocket] No handlers registered for event type: ${data.type}`);
           }
         }
       } catch (error) {
@@ -103,6 +111,10 @@ class WebSocketService {
     };
 
     this.ws.send(JSON.stringify(message));
+
+    // Play message send sound
+    soundService.playMessageSend();
+
     return true;
   }
 
@@ -118,15 +130,19 @@ class WebSocketService {
       this.eventHandlers.set(eventType, []);
     }
     this.eventHandlers.get(eventType)!.push(handler);
+    console.log(`[WebSocket] Registered handler for event: ${eventType}. Total handlers: ${this.eventHandlers.get(eventType)!.length}`);
 
     return () => {
+      console.log(`[WebSocket] Unregistering handler for event: ${eventType}`);
       const handlers = this.eventHandlers.get(eventType);
       if (handlers) {
         const filtered = handlers.filter((h) => h !== handler);
         if (filtered.length === 0) {
           this.eventHandlers.delete(eventType);
+          console.log(`[WebSocket] No more handlers for event: ${eventType}`);
         } else {
           this.eventHandlers.set(eventType, filtered);
+          console.log(`[WebSocket] Remaining handlers for ${eventType}: ${filtered.length}`);
         }
       }
     };
