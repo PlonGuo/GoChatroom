@@ -1,21 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: gochatroom-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: gochatroom
-      POSTGRES_USER: gochatroom
-      POSTGRES_PASSWORD: gochatroom
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gochatroom"]
-      timeout: 5s
-      retries: 10
-
   redis:
     image: redis:7-alpine
     container_name: gochatroom-redis
@@ -30,5 +13,4 @@ services:
       retries: 10
 
 volumes:
-  postgres_data:
   redis_data:
