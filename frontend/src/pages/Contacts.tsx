@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Tabs, Badge, message } from 'antd';
+import { Card, Tabs, Badge, App } from 'antd';
 import { TeamOutlined, UserAddOutlined, SearchOutlined } from '@ant-design/icons';
 import { ContactList, FriendRequestList, UserSearch } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
@@ -10,6 +10,7 @@ import type { Contact } from '../types';
 
 export const Contacts = () => {
   const dispatch = useAppDispatch();
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const { friendRequests } = useAppSelector((state) => state.contact);
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Form, Input, Button, Avatar, Typography, Divider, message, Space } from 'antd';
+import { Card, Form, Input, Button, Avatar, Typography, Divider, Space, App } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined, EditOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { setUser, logout } from '../store/authSlice';
@@ -20,6 +20,7 @@ interface PasswordFormValues {
 
 export const Profile = () => {
   const dispatch = useAppDispatch();
+  const { message } = App.useApp();
   const { user } = useAppSelector((state) => state.auth);
   const { mode } = useAppSelector((state) => state.theme);
   const [isEditingProfile, setIsEditingProfile] = useState(false);

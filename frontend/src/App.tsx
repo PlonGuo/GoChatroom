@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App as AntApp } from 'antd';
 import { AuthGuard, GuestGuard, AppLayout } from './components';
 import { Login, Register, Home, Contacts, Profile } from './pages';
 import { useAppDispatch, useAppSelector } from './hooks';
@@ -30,7 +30,8 @@ function App() {
 
   return (
     <ConfigProvider theme={themeConfig}>
-      <BrowserRouter>
+      <AntApp>
+        <BrowserRouter>
         <Routes>
           {/* Public routes */}
           <Route
@@ -86,6 +87,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </AntApp>
     </ConfigProvider>
   );
 }

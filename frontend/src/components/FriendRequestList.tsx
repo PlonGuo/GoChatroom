@@ -1,4 +1,4 @@
-import { List, Avatar, Button, Empty, message, Typography } from 'antd';
+import { List, Avatar, Button, Empty, Typography, App } from 'antd';
 import { UserOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { acceptFriendRequest, rejectFriendRequest, fetchContacts } from '../store/contactSlice';
@@ -7,6 +7,7 @@ const { Text } = Typography;
 
 export const FriendRequestList = () => {
   const dispatch = useAppDispatch();
+  const { message } = App.useApp();
   const { friendRequests, isLoading } = useAppSelector((state) => state.contact);
   const { mode } = useAppSelector((state) => state.theme);
 

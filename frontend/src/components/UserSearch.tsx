@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input, List, Avatar, Button, Empty, message, Modal, Form, Typography } from 'antd';
+import { Input, List, Avatar, Button, Empty, Modal, Form, Typography, App } from 'antd';
 import { UserOutlined, UserAddOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { searchUsers, sendFriendRequest, clearSearchResults } from '../store/contactSlice';
@@ -11,6 +11,7 @@ const { Text } = Typography;
 
 export const UserSearch = () => {
   const dispatch = useAppDispatch();
+  const { message } = App.useApp();
   const { searchResults, isLoading, contacts } = useAppSelector((state) => state.contact);
   const { user: currentUser } = useAppSelector((state) => state.auth);
   const { mode } = useAppSelector((state) => state.theme);

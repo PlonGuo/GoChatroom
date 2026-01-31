@@ -1,4 +1,4 @@
-import { List, Avatar, Typography, Badge, Empty, Popconfirm, Button, message } from 'antd';
+import { List, Avatar, Typography, Badge, Empty, Popconfirm, Button, App } from 'antd';
 import { UserOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { setCurrentSession, deleteSession } from '../store/sessionSlice';
@@ -12,12 +12,17 @@ interface SessionListProps {
 
 export const SessionList = ({ onSelectSession }: SessionListProps) => {
   const dispatch = useAppDispatch();
+  const { message } = App.useApp();
   const { sessions, currentSession, isLoading } = useAppSelector((state) => state.session);
   const { mode } = useAppSelector((state) => state.theme);
 
   const isCyberpunk = mode === 'cyberpunk';
 
   const handleSelectSession = (session: Session) => {
+    // Don't re-select if already the current session
+    if (currentSession?.uuid === session.uuid) {
+      return;
+    }
     dispatch(setCurrentSession(session));
     onSelectSession?.(session);
   };
@@ -35,16 +40,33 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Convert to PST (America/Los_Angeles timezone)
+    const pstOptions: Intl.DateTimeFormatOptions = { timeZone: 'America/Los_Angeles' };
+    const datePST = new Date(date.toLocaleString('en-US', pstOptions));
+    const nowPST = new Date(now.toLocaleString('en-US', pstOptions));
+
+    const diffDays = Math.floor((nowPST.getTime() - datePST.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Los_Angeles'
+      });
     } else if (diffDays === 1) {
       return 'Yesterday';
     } else if (diffDays < 7) {
-      return date.toLocaleDateString([], { weekday: 'short' });
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        timeZone: 'America/Los_Angeles'
+      });
     } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'America/Los_Angeles'
+      });
     }
   };
 

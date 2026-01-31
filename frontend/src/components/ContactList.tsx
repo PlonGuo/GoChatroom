@@ -1,4 +1,4 @@
-import { List, Avatar, Button, Empty, Popconfirm, message, Typography } from 'antd';
+import { List, Avatar, Button, Empty, Popconfirm, Typography, App } from 'antd';
 import { UserOutlined, DeleteOutlined, MessageOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
@@ -12,6 +12,7 @@ interface ContactListProps {
 
 export const ContactList = ({ onStartChat }: ContactListProps) => {
   const dispatch = useAppDispatch();
+  const { message } = App.useApp();
   const { contacts, isLoading } = useAppSelector((state) => state.contact);
   const { mode } = useAppSelector((state) => state.theme);
 
