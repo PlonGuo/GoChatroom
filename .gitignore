@@ -44,3 +44,5 @@ coverage/
 # Resume and interview prep documents (personal use)
 PROJECT_RESUME_CONTENT.md
 INTERVIEW_PREP.md
+POSTGRES_MIGRATION_GUIDE.md
+WEBRTC_PRODUCTION.md
