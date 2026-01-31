@@ -49,7 +49,15 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
   };
 
   if (sessions.length === 0 && !isLoading) {
-    return <Empty description="No conversations yet" />;
+    return (
+      <Empty
+        description={
+          <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+            No conversations yet
+          </Text>
+        }
+      />
+    );
   }
 
   return (

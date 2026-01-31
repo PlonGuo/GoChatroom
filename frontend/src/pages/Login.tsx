@@ -52,7 +52,9 @@ export const Login = () => {
             >
               GoChatroom
             </Title>
-            <Text type="secondary">Sign in to your account</Text>
+            <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+              Sign in to your account
+            </Text>
           </div>
 
           {error && (
@@ -91,7 +93,7 @@ export const Login = () => {
           </Form>
 
           <div className="text-center">
-            <Text type="secondary">
+            <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
               Don't have an account? <Link to="/register">Sign up</Link>
             </Text>
           </div>

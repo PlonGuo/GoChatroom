@@ -3,9 +3,11 @@ package contact
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/PlonGuo/GoChatroom/backend/internal/database"
 	"github.com/PlonGuo/GoChatroom/backend/internal/model"
+	"github.com/PlonGuo/GoChatroom/backend/internal/service/chat"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -82,6 +84,19 @@ func SendFriendRequest(userID string, req ApplyRequest) error {
 		return fmt.Errorf("failed to create friend request: %w", err)
 	}
 
+	// Send WebSocket notification to recipient
+	hub := chat.GetHub()
+	hub.SendToUser(req.ContactID, chat.WSResponse{
+		Type: "friend_request",
+		Data: map[string]interface{}{
+			"uuid":      apply.UUID,
+			"userId":    userID,
+			"contactId": req.ContactID,
+			"message":   req.Message,
+		},
+		Timestamp: time.Now().Unix(),
+	})
+
 	return nil
 }
 
@@ -137,6 +152,19 @@ func AcceptFriendRequest(applyUUID, userID string) error {
 	}
 
 	tx.Commit()
+
+	// Send WebSocket notification to the requester (person who sent the request)
+	hub := chat.GetHub()
+	hub.SendToUser(apply.UserID, chat.WSResponse{
+		Type: "friend_request_accepted",
+		Data: map[string]interface{}{
+			"uuid":      apply.UUID,
+			"userId":    apply.UserID,
+			"contactId": apply.ContactID,
+		},
+		Timestamp: time.Now().Unix(),
+	})
+
 	return nil
 }
 

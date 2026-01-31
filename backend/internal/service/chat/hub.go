@@ -169,7 +169,7 @@ func (h *Hub) handleMessage(msg *WSMessage) {
 		h.broadcastToGroup(msg.ReceiveID, senderResponse)
 	} else {
 		// Direct message: send to sender with their session ID
-		h.sendToUser(msg.SendID, senderResponse)
+		h.SendToUser(msg.SendID, senderResponse)
 
 		// Send to receiver with their session ID
 		receiverResponse := WSResponse{
@@ -192,7 +192,7 @@ func (h *Hub) handleMessage(msg *WSMessage) {
 			},
 			Timestamp: time.Now().Unix(),
 		}
-		h.sendToUser(msg.ReceiveID, receiverResponse)
+		h.SendToUser(msg.ReceiveID, receiverResponse)
 	}
 }
 
@@ -212,8 +212,8 @@ func (h *Hub) sendToClient(client *Client, response WSResponse) {
 	}
 }
 
-// sendToUser sends a response to a user by their UUID
-func (h *Hub) sendToUser(userID string, response WSResponse) {
+// SendToUser sends a response to a user by their UUID
+func (h *Hub) SendToUser(userID string, response WSResponse) {
 	h.mu.RLock()
 	client, ok := h.clients[userID]
 	h.mu.RUnlock()

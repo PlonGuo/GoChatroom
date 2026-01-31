@@ -27,7 +27,15 @@ export const ContactList = ({ onStartChat }: ContactListProps) => {
   };
 
   if (contacts.length === 0 && !isLoading) {
-    return <Empty description="No contacts yet" />;
+    return (
+      <Empty
+        description={
+          <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+            No contacts yet
+          </Text>
+        }
+      />
+    );
   }
 
   return (

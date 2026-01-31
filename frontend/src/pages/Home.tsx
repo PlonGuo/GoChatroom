@@ -4,6 +4,7 @@ import { MessageOutlined, WifiOutlined, DisconnectOutlined, VideoCameraOutlined 
 import { SessionList, ChatBox, ChatInput, VideoCall, IncomingCallModal } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchSessions, fetchMessages, addMessage } from '../store/sessionSlice';
+import { fetchContacts, fetchFriendRequests } from '../store/contactSlice';
 import { websocketService } from '../services/websocket';
 import { webrtcService } from '../services';
 import type { CallState } from '../services';
@@ -56,6 +57,17 @@ export const Home = () => {
 
       const unsubMessage = websocketService.onMessage(handleIncomingMessage);
 
+      // Listen for friend request events
+      const unsubFriendRequest = websocketService.onEvent('friend_request', () => {
+        // Refresh friend requests when a new request is received
+        dispatch(fetchFriendRequests());
+      });
+
+      const unsubFriendRequestAccepted = websocketService.onEvent('friend_request_accepted', () => {
+        // Refresh contacts when a friend request is accepted
+        dispatch(fetchContacts());
+      });
+
       const unsubConnect = websocketService.onConnect(() => {
         setIsConnected(true);
       });
@@ -66,12 +78,14 @@ export const Home = () => {
 
       return () => {
         unsubMessage();
+        unsubFriendRequest();
+        unsubFriendRequestAccepted();
         unsubConnect();
         unsubDisconnect();
         websocketService.disconnect();
       };
     }
-  }, [token, handleIncomingMessage]);
+  }, [token, handleIncomingMessage, dispatch]);
 
   useEffect(() => {
     if (currentSession) {
@@ -140,10 +154,10 @@ export const Home = () => {
                 status={isConnected ? 'success' : 'error'}
                 text={
                   <Text
-                    type="secondary"
+                    type={isCyberpunk ? undefined : "secondary"}
                     style={{
                       fontSize: 12,
-                      color: isCyberpunk && isConnected ? '#00f0ff' : undefined,
+                      color: isCyberpunk ? (isConnected ? '#00f0ff' : '#ffffff') : undefined,
                     }}
                   >
                     {isConnected ? <WifiOutlined /> : <DisconnectOutlined />}
@@ -209,10 +223,16 @@ export const Home = () => {
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={
                   <div>
-                    <Title level={4} type="secondary">
+                    <Title
+                      level={4}
+                      type={isCyberpunk ? undefined : "secondary"}
+                      style={{ color: isCyberpunk ? '#ffffff' : undefined }}
+                    >
                       Welcome to GoChatroom
                     </Title>
-                    <Text type="secondary">Select a conversation to start chatting</Text>
+                    <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+                      Select a conversation to start chatting
+                    </Text>
                   </div>
                 }
               />

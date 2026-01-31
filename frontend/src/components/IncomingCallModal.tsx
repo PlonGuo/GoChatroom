@@ -46,10 +46,12 @@ export const IncomingCallModal = ({ visible, callerName, callerAvatar }: Incomin
           }}
         />
         <div>
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={4} style={{ margin: 0, color: isCyberpunk ? '#ffffff' : undefined }}>
             {callerName || 'Someone'}
           </Title>
-          <Text type="secondary">is calling you...</Text>
+          <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+            is calling you...
+          </Text>
         </div>
         <Flex gap="large">
           <Button

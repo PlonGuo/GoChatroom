@@ -10,9 +10,9 @@ import (
 // Session represents a chat session between users or within a group
 type Session struct {
 	ID            int64          `gorm:"primaryKey;autoIncrement" json:"id"`
-	UUID          string         `gorm:"type:char(20);uniqueIndex;not null" json:"uuid"`
-	SendID        string         `gorm:"type:char(20);not null;index" json:"sendId"`       // Session owner (viewer)
-	ReceiveID     string         `gorm:"type:char(20);not null;index" json:"receiveId"`    // Contact UUID (user or group)
+	UUID          string         `gorm:"type:varchar(20);uniqueIndex;not null" json:"uuid"`
+	SendID        string         `gorm:"type:varchar(20);not null;index" json:"sendId"`       // Session owner (viewer)
+	ReceiveID     string         `gorm:"type:varchar(20);not null;index" json:"receiveId"`    // Contact UUID (user or group)
 	ReceiveName   string         `gorm:"type:varchar(50)" json:"receiveName"`              // Display name
 	Avatar        string         `gorm:"type:varchar(255);default:'https://api.dicebear.com/7.x/avataaars/svg'" json:"avatar"`
 	LastMessage   string         `gorm:"type:text" json:"lastMessage"`

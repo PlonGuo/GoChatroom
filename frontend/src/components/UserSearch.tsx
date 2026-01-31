@@ -105,7 +105,14 @@ export const UserSearch = () => {
       )}
 
       {searchQuery && searchResults.length === 0 && !isLoading && (
-        <Empty description="No users found" style={{ marginTop: 16 }} />
+        <Empty
+          description={
+            <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+              No users found
+            </Text>
+          }
+          style={{ marginTop: 16 }}
+        />
       )}
 
       <Modal

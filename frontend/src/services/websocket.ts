@@ -1,6 +1,7 @@
 import type { Message } from '../types';
 
 type MessageHandler = (message: Message) => void;
+type EventHandler = (data: unknown) => void;
 type ConnectionHandler = () => void;
 
 interface WebSocketMessage {
@@ -11,6 +12,7 @@ interface WebSocketMessage {
 class WebSocketService {
   private ws: WebSocket | null = null;
   private messageHandlers: MessageHandler[] = [];
+  private eventHandlers: Map<string, EventHandler[]> = new Map();
   private connectHandlers: ConnectionHandler[] = [];
   private disconnectHandlers: ConnectionHandler[] = [];
   private reconnectAttempts = 0;
@@ -37,6 +39,12 @@ class WebSocketService {
         if (data.type === 'message') {
           const message = data.data as Message;
           this.messageHandlers.forEach((handler) => handler(message));
+        } else {
+          // Handle other event types (friend_request, friend_request_accepted, etc.)
+          const handlers = this.eventHandlers.get(data.type);
+          if (handlers) {
+            handlers.forEach((handler) => handler(data.data));
+          }
         }
       } catch (error) {
         console.error('Failed to parse WebSocket message:', error);
@@ -102,6 +110,25 @@ class WebSocketService {
     this.messageHandlers.push(handler);
     return () => {
       this.messageHandlers = this.messageHandlers.filter((h) => h !== handler);
+    };
+  }
+
+  onEvent(eventType: string, handler: EventHandler) {
+    if (!this.eventHandlers.has(eventType)) {
+      this.eventHandlers.set(eventType, []);
+    }
+    this.eventHandlers.get(eventType)!.push(handler);
+
+    return () => {
+      const handlers = this.eventHandlers.get(eventType);
+      if (handlers) {
+        const filtered = handlers.filter((h) => h !== handler);
+        if (filtered.length === 0) {
+          this.eventHandlers.delete(eventType);
+        } else {
+          this.eventHandlers.set(eventType, filtered);
+        }
+      }
     };
   }
 

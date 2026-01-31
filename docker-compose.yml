@@ -1,20 +1,19 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: gochatroom-mysql
+  postgres:
+    image: postgres:16-alpine
+    container_name: gochatroom-postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: gochatroom
-      MYSQL_USER: gochatroom
-      MYSQL_PASSWORD: gochatroom
+      POSTGRES_DB: gochatroom
+      POSTGRES_USER: gochatroom
+      POSTGRES_PASSWORD: gochatroom
     ports:
-      - "3307:3306"
+      - "5433:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
+      test: ["CMD-SHELL", "pg_isready -U gochatroom"]
+      timeout: 5s
       retries: 10
 
   redis:
@@ -31,5 +30,5 @@ services:
       retries: 10
 
 volumes:
-  mysql_data:
+  postgres_data:
   redis_data:

@@ -80,10 +80,12 @@ export const Profile = () => {
               boxShadow: isCyberpunk ? '0 0 20px rgba(0, 240, 255, 0.3)' : undefined,
             }}
           />
-          <Title level={3} style={{ marginBottom: 4 }}>
+          <Title level={3} style={{ marginBottom: 4, color: isCyberpunk ? '#ffffff' : undefined }}>
             {user?.nickname}
           </Title>
-          <Text type="secondary">{user?.email}</Text>
+          <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+            {user?.email}
+          </Text>
         </div>
 
         <Divider>Profile Information</Divider>
@@ -122,17 +124,21 @@ export const Profile = () => {
         ) : (
           <div>
             <div style={{ marginBottom: 16 }}>
-              <Text type="secondary">Nickname</Text>
+              <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+                Nickname
+              </Text>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <UserOutlined style={{ color: isCyberpunk ? '#00f0ff' : '#1890ff' }} />
-                <Text strong>{user?.nickname}</Text>
+                <Text strong style={{ color: isCyberpunk ? '#ffffff' : undefined }}>{user?.nickname}</Text>
               </div>
             </div>
             <div style={{ marginBottom: 16 }}>
-              <Text type="secondary">Email</Text>
+              <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+                Email
+              </Text>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <MailOutlined style={{ color: isCyberpunk ? '#00f0ff' : '#1890ff' }} />
-                <Text strong>{user?.email}</Text>
+                <Text strong style={{ color: isCyberpunk ? '#ffffff' : undefined }}>{user?.email}</Text>
               </div>
             </div>
             <Button icon={<EditOutlined />} onClick={handleEditProfile}>

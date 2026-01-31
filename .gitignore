@@ -40,3 +40,7 @@ coverage/
 /docs/
 # But allow backend docs
 !backend/docs/
+
+# Resume and interview prep documents (personal use)
+PROJECT_RESUME_CONTENT.md
+INTERVIEW_PREP.md

@@ -1,7 +1,7 @@
 import { List, Avatar, Button, Empty, message, Typography } from 'antd';
 import { UserOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { acceptFriendRequest, rejectFriendRequest } from '../store/contactSlice';
+import { acceptFriendRequest, rejectFriendRequest, fetchContacts } from '../store/contactSlice';
 
 const { Text } = Typography;
 
@@ -15,6 +15,8 @@ export const FriendRequestList = () => {
   const handleAccept = async (uuid: string) => {
     try {
       await dispatch(acceptFriendRequest(uuid)).unwrap();
+      // Refresh contacts list to show the newly added friend
+      await dispatch(fetchContacts());
       message.success('Friend request accepted');
     } catch (error) {
       message.error(error as string);
@@ -31,7 +33,15 @@ export const FriendRequestList = () => {
   };
 
   if (friendRequests.length === 0 && !isLoading) {
-    return <Empty description="No friend requests" />;
+    return (
+      <Empty
+        description={
+          <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+            No friend requests
+          </Text>
+        }
+      />
+    );
   }
 
   return (

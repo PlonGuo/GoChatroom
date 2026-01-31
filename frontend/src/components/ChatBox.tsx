@@ -38,7 +38,13 @@ export const ChatBox = ({ messages, isLoading }: ChatBoxProps) => {
   if (messages.length === 0) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Empty description="No messages yet. Say hi!" />
+        <Empty
+          description={
+            <Text type={isCyberpunk ? undefined : "secondary"} style={{ color: isCyberpunk ? '#ffffff' : undefined }}>
+              No messages yet. Say hi!
+            </Text>
+          }
+        />
       </div>
     );
   }

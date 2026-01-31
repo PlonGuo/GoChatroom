@@ -3,11 +3,13 @@ package database
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/PlonGuo/GoChatroom/backend/internal/config"
 	"github.com/PlonGuo/GoChatroom/backend/internal/model"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -19,18 +21,37 @@ func Init() error {
 	cfg := config.Get()
 
 	var dsn string
+	var isPostgres bool
+
 	if cfg.Database.URL != "" {
-		// Use full connection URL (PlanetScale format)
+		// Use full connection URL
 		dsn = cfg.Database.URL
+		// Detect database type from URL
+		isPostgres = strings.HasPrefix(dsn, "postgres://") || strings.HasPrefix(dsn, "postgresql://")
 	} else {
 		// Build DSN from individual fields
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			cfg.Database.User,
-			cfg.Database.Password,
-			cfg.Database.Host,
-			cfg.Database.Port,
-			cfg.Database.Name,
-		)
+		// For local dev, assume PostgreSQL if port is 5432, otherwise MySQL
+		if cfg.Database.Port == "5432" {
+			// PostgreSQL DSN format
+			dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+				cfg.Database.Host,
+				cfg.Database.Port,
+				cfg.Database.User,
+				cfg.Database.Password,
+				cfg.Database.Name,
+			)
+			isPostgres = true
+		} else {
+			// MySQL DSN format
+			dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+				cfg.Database.User,
+				cfg.Database.Password,
+				cfg.Database.Host,
+				cfg.Database.Port,
+				cfg.Database.Name,
+			)
+			isPostgres = false
+		}
 	}
 
 	// Configure GORM logger
@@ -44,9 +65,19 @@ func Init() error {
 	}
 
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), gormConfig)
-	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
+	// Use appropriate driver based on database type
+	if isPostgres {
+		DB, err = gorm.Open(postgres.Open(dsn), gormConfig)
+		if err != nil {
+			return fmt.Errorf("failed to connect to postgres database: %w", err)
+		}
+		log.Println("Using PostgreSQL database")
+	} else {
+		DB, err = gorm.Open(mysql.Open(dsn), gormConfig)
+		if err != nil {
+			return fmt.Errorf("failed to connect to mysql database: %w", err)
+		}
+		log.Println("Using MySQL database")
 	}
 
 	// Configure connection pool
