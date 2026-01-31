@@ -3,6 +3,7 @@
 ## Project Overview
 
 GoChatroom is a real-time chat application with:
+
 - **Backend**: Go + Gin + GORM + Redis
 - **Frontend**: React 19 + TypeScript + Ant Design + Redux Toolkit
 - **Deployment**: Vercel (frontend) + Fly.io (backend)
@@ -104,6 +105,7 @@ export const generateUUID = () => {...}
    - Extract sub-components when logic grows
 
 3. **Name files the same as the component**
+
    ```
    // Avatar.tsx
    export const Avatar = () => {...}
@@ -115,6 +117,7 @@ export const generateUUID = () => {...}
 ### Hook Guidelines
 
 1. **One hook per file**
+
    ```
    hooks/
    ├── useAuth.ts
@@ -127,12 +130,13 @@ export const generateUUID = () => {...}
    // useAuth.ts
    export const useAuth = () => {
      // auth logic
-   }
+   };
    ```
 
 ### API Service Guidelines
 
 1. **Group by feature, one function per file when complex**
+
    ```
    api/
    ├── auth/
@@ -182,6 +186,7 @@ export const generateUUID = () => {...}
 ## Backend Code Style
 
 ### Handler Pattern
+
 ```go
 func CreateUser(c *gin.Context) {
     // 1. Parse & validate request
@@ -191,6 +196,7 @@ func CreateUser(c *gin.Context) {
 ```
 
 ### Service Pattern
+
 ```go
 func (s *UserService) Create(name, email, password string) (*User, error) {
     // Business logic here
@@ -198,6 +204,7 @@ func (s *UserService) Create(name, email, password string) (*User, error) {
 ```
 
 ### Error Handling
+
 ```go
 if err != nil {
     return fmt.Errorf("failed to create user: %w", err)
@@ -207,6 +214,7 @@ if err != nil {
 ## Environment Variables
 
 ### Backend
+
 ```
 APP_ENV=development
 PORT=8080
@@ -222,6 +230,7 @@ CORS_ORIGINS=http://localhost:5173
 ```
 
 ### Frontend
+
 ```
 VITE_API_URL=http://localhost:8080
 VITE_WS_URL=ws://localhost:8080
@@ -230,22 +239,61 @@ VITE_WS_URL=ws://localhost:8080
 ## Development Commands
 
 ### Backend
+
 ```bash
 cd backend
 go run cmd/server/main.go
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 npm run dev
 ```
 
 ### Database
+
 ```bash
 docker-compose up -d    # Start MySQL + Redis
 docker-compose down     # Stop
 ```
+
+## Frontend Testing with Playwright MCP
+
+**IMPORTANT**: After completing a frontend UI component or function, use Playwright MCP to test it automatically.
+
+### Testing Workflow
+
+1. **After finishing a UI component/function**, use Playwright to verify it works:
+
+   ```
+   - Navigate to the relevant page using `browser_navigate`
+   - Take a snapshot using `browser_snapshot` to see the current state
+   - Interact with elements using `browser_click`, `browser_type`, etc.
+   - Verify the expected behavior
+   ```
+
+2. **Common test scenarios**:
+   - Form submissions: Fill fields with `browser_type`, click submit, verify response
+   - Navigation: Click links/buttons, verify correct page loads
+   - Modals/dialogs: Trigger open, verify content, test close behavior
+   - Real-time features: Test WebSocket connections, message sending/receiving
+
+3. **Example test flow**:
+
+   ```
+   1. browser_navigate to http://localhost:5173
+   2. browser_snapshot to see the page structure
+   3. browser_click on login button
+   4. browser_type username and password
+   5. browser_click submit
+   6. browser_snapshot to verify successful login
+   ```
+
+4. **Prerequisites**:
+   - Frontend dev server must be running (`npm run dev` in frontend/)
+   - Backend must be running if testing API-dependent features
 
 ## Commit Message Format
 
@@ -259,3 +307,13 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
 
 Scopes: `backend`, `frontend`, `infra`, `ci`, `docs`
+
+## Sound Notification (macOS)
+
+**IMPORTANT**: After finishing responding to my request or running a command, run this command to notify me by sound:
+
+```bash
+afplay /System/Library/Sounds/Funk.aiff
+```
+
+This uses macOS's built-in `afplay` command to play system sounds.
