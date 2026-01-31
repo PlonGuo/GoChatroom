@@ -139,6 +139,10 @@ func (h *Hub) handleMessage(msg *WSMessage) {
 			receiverSessionID = receiverSession.UUID
 			// Update receiver's session last message
 			session.UpdateLastMessage(receiverSessionID, displayContent)
+			// Increment unread count for receiver's session
+			if err := session.IncrementUnread(receiverSessionID); err != nil {
+				log.Printf("Failed to increment unread count: %v", err)
+			}
 		}
 	}
 

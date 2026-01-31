@@ -1,17 +1,29 @@
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Badge } from 'antd';
 import { MessageOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../hooks';
 
 const { Sider } = Layout;
 
 export const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { sessions } = useAppSelector((state) => state.session);
+  const { mode } = useAppSelector((state) => state.theme);
+
+  const isCyberpunk = mode === 'cyberpunk';
+
+  // Calculate total unread messages
+  const totalUnread = sessions.reduce((sum, session) => sum + (session.unreadCount || 0), 0);
 
   const menuItems = [
     {
       key: '/',
-      icon: <MessageOutlined />,
+      icon: (
+        <Badge count={totalUnread} size="small" offset={[10, 0]} color={isCyberpunk ? '#ff006e' : undefined}>
+          <MessageOutlined />
+        </Badge>
+      ),
       label: 'Messages',
     },
     {

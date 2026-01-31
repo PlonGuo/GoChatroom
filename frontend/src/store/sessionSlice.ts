@@ -82,6 +82,18 @@ export const deleteSession = createAsyncThunk(
   }
 );
 
+export const clearSessionUnread = createAsyncThunk(
+  'session/clearUnread',
+  async (sessionUuid: string, { rejectWithValue }) => {
+    try {
+      await sessionApi.clearSessionUnread(sessionUuid);
+      return sessionUuid;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to clear unread count');
+    }
+  }
+);
+
 const sessionSlice = createSlice({
   name: 'session',
   initialState,
@@ -93,10 +105,10 @@ const sessionSlice = createSlice({
     addMessage: (state, action: PayloadAction<Message>) => {
       const message = action.payload;
 
-      // Only add to current messages if it belongs to the current session
-      // Match by sessionId OR by participants (sendId/receiveId matching currentSession's receiveId)
+      // Check if this message is for the current session
+      let isForCurrentSession = false;
       if (state.currentSession) {
-        const isForCurrentSession =
+        isForCurrentSession =
           message.sessionId === state.currentSession.uuid ||
           // Also match by participants in case sessionId doesn't match
           (message.sendId === state.currentSession.receiveId ||
@@ -124,6 +136,15 @@ const sessionSlice = createSlice({
       if (session) {
         session.lastMessage = message.content;
         session.lastMessageAt = message.createdAt;
+
+        // Increment unread count if:
+        // 1. Message is received (sent by the other person, i.e., sendId === session.receiveId)
+        // 2. Message is NOT for the currently open session
+        const isReceivedMessage = message.sendId === session.receiveId;
+        if (isReceivedMessage && !isForCurrentSession) {
+          session.unreadCount = (session.unreadCount || 0) + 1;
+        }
+
         // Move session to top
         state.sessions = [session, ...state.sessions.filter((s) => s.uuid !== session!.uuid)];
       }
@@ -184,6 +205,16 @@ const sessionSlice = createSlice({
         if (state.currentSession?.uuid === action.payload) {
           state.currentSession = null;
           state.messages = [];
+        }
+      })
+      // Clear session unread
+      .addCase(clearSessionUnread.fulfilled, (state, action) => {
+        const session = state.sessions.find((s) => s.uuid === action.payload);
+        if (session) {
+          session.unreadCount = 0;
+        }
+        if (state.currentSession?.uuid === action.payload) {
+          state.currentSession.unreadCount = 0;
         }
       });
   },
