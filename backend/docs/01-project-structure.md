@@ -37,11 +37,13 @@ backend/
 ## Directory Purposes
 
 ### `cmd/`
+
 Contains the main applications for this project. Each subdirectory is a separate executable.
 
 - `cmd/server/main.go`: The main HTTP server that starts everything
 
 ### `internal/`
+
 Private application code. Go's `internal` directory is special - code here cannot be imported by other projects. This enforces encapsulation.
 
 - **config/**: Reads environment variables and provides configuration to other packages
@@ -53,7 +55,9 @@ Private application code. Go's `internal` directory is special - code here canno
 - **service/**: Core business logic, separated from HTTP concerns
 
 ### `pkg/`
+
 Public library code that could be used by external applications. Currently empty but will contain:
+
 - Utility functions
 - Custom error types
 - Response helpers
@@ -76,6 +80,7 @@ Response ← Router ← Middleware ← Handler ← Service
 ## Key Files Explained
 
 ### `main.go`
+
 ```go
 func main() {
     cfg := config.Get()           // Load configuration
@@ -90,7 +95,9 @@ func main() {
 ```
 
 ### `config/config.go`
+
 Uses the singleton pattern to load configuration once and share it everywhere:
+
 ```go
 var cfg *Config
 var once sync.Once
@@ -104,7 +111,9 @@ func Get() *Config {
 ```
 
 ### `model/*.go`
+
 Define database tables as Go structs:
+
 ```go
 type User struct {
     ID       int64  `gorm:"primaryKey"`
