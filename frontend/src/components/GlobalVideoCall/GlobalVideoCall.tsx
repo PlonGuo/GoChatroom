@@ -36,25 +36,27 @@ export const GlobalVideoCall = () => {
   );
 
   // WebRTC connection for video calls - stays active across all pages
+  // IMPORTANT: Only depends on token and user.uuid to prevent reconnection when sessions change
   useEffect(() => {
     if (!token || !user?.uuid) return;
 
-    console.log('[GlobalVideoCall] Initializing WebRTC connection');
+    console.log('[GlobalVideoCall] Initializing WebRTC connection for user:', user.uuid);
 
     // Connect to WebRTC signaling server
     webrtcService.connect(token, user.uuid).catch((error) => {
-      console.error('Failed to connect to WebRTC signaling:', error);
+      console.error('[GlobalVideoCall] Failed to connect to WebRTC signaling:', error);
     });
 
     const unsubStateChange = webrtcService.onStateChange((state) => {
-      console.log('[GlobalVideoCall] Call state changed:', state);
+      console.log('[GlobalVideoCall] Call state changed:', {
+        isInCall: state.isInCall,
+        isCalling: state.isCalling,
+        isReceivingCall: state.isReceivingCall,
+        remoteUserId: state.remoteUserId,
+        hasLocalStream: !!state.localStream,
+        hasRemoteStream: !!state.remoteStream,
+      });
       setCallState(state);
-
-      // When receiving a call, find caller info from sessions
-      if (state.isReceivingCall && state.remoteUserId) {
-        const info = findCallerInfo(state.remoteUserId);
-        setCallerInfo(info);
-      }
     });
 
     return () => {
@@ -62,15 +64,18 @@ export const GlobalVideoCall = () => {
       unsubStateChange();
       webrtcService.disconnect();
     };
-  }, [token, user?.uuid, findCallerInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, user?.uuid]);
 
-  // Update caller info when sessions change (in case caller info wasn't available initially)
+  // Separate effect to update caller info when call state or sessions change
   useEffect(() => {
     if (callState.isReceivingCall && callState.remoteUserId) {
       const info = findCallerInfo(callState.remoteUserId);
+      console.log('[GlobalVideoCall] Updated caller info:', info);
       setCallerInfo(info);
     }
-  }, [sessions, callState.isReceivingCall, callState.remoteUserId, findCallerInfo]);
+  }, [callState.isReceivingCall, callState.remoteUserId, findCallerInfo]);
+
 
   // Play/stop ringtone when receiving a call
   useEffect(() => {

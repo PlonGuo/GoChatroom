@@ -78,25 +78,35 @@ func (h *SignalingHub) Run() {
 
 // relayMessage sends a signaling message to the target user
 func (h *SignalingHub) relayMessage(msg *SignalingMessage) {
+	log.Printf("[WebRTC] Relaying message: type=%s, from=%s, to=%s", msg.Type, msg.From, msg.To)
+
 	h.mu.RLock()
 	targetClient, ok := h.clients[msg.To]
+	// Log all connected clients for debugging
+	connectedUsers := make([]string, 0, len(h.clients))
+	for userID := range h.clients {
+		connectedUsers = append(connectedUsers, userID)
+	}
 	h.mu.RUnlock()
 
+	log.Printf("[WebRTC] Connected clients: %v", connectedUsers)
+
 	if !ok {
-		log.Printf("Target user not connected for signaling: %s", msg.To)
+		log.Printf("[WebRTC] ✗ Target user NOT connected: %s", msg.To)
 		return
 	}
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Printf("Failed to marshal signaling message: %v", err)
+		log.Printf("[WebRTC] ✗ Failed to marshal signaling message: %v", err)
 		return
 	}
 
 	select {
 	case targetClient.send <- data:
+		log.Printf("[WebRTC] ✓ Message relayed successfully: type=%s, to=%s", msg.Type, msg.To)
 	default:
-		log.Printf("Signaling client buffer full: %s", msg.To)
+		log.Printf("[WebRTC] ✗ Client buffer full: %s", msg.To)
 	}
 }
 
@@ -118,6 +128,7 @@ func NewSignalingClient(hub *SignalingHub, conn *websocket.Conn, userID string) 
 // readPump reads messages from the WebSocket connection
 func (c *SignalingClient) readPump() {
 	defer func() {
+		log.Printf("[WebRTC] Client readPump ending, unregistering: %s", c.userID)
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
@@ -126,16 +137,20 @@ func (c *SignalingClient) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("WebRTC signaling error: %v", err)
+				log.Printf("[WebRTC] ✗ Signaling error for %s: %v", c.userID, err)
+			} else {
+				log.Printf("[WebRTC] Client %s disconnected normally", c.userID)
 			}
 			break
 		}
 
 		var msg SignalingMessage
 		if err := json.Unmarshal(message, &msg); err != nil {
-			log.Printf("Failed to parse signaling message: %v", err)
+			log.Printf("[WebRTC] ✗ Failed to parse message from %s: %v", c.userID, err)
 			continue
 		}
+
+		log.Printf("[WebRTC] Received message from %s: type=%s, to=%s", c.userID, msg.Type, msg.To)
 
 		// Ensure the from field is set correctly
 		msg.From = c.userID

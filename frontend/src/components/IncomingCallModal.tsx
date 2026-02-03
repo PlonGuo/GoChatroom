@@ -15,11 +15,15 @@ export const IncomingCallModal = ({ visible, callerName, callerAvatar }: Incomin
   const { mode } = useAppSelector((state) => state.theme);
   const isCyberpunk = mode === 'cyberpunk';
 
+  console.log('[IncomingCallModal] Render, visible:', visible, 'callerName:', callerName);
+
   const handleAccept = () => {
+    console.log('[IncomingCallModal] Accept button clicked!');
     webrtcService.acceptCall();
   };
 
   const handleReject = () => {
+    console.log('[IncomingCallModal] Reject button clicked!');
     webrtcService.rejectCall();
   };
 
