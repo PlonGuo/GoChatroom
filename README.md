@@ -4,12 +4,10 @@ A modern real-time chat application built with Go and React, featuring instant m
 
 ## Live Demo
 
-~~**Try it out:** [https://frontend-three-pied-39.vercel.app](https://frontend-three-pied-39.vercel.app)~~
+**Try it out:** [https://frontend-three-pied-39.vercel.app](https://frontend-three-pied-39.vercel.app)
 
-~~Create an account and add me as a friend to test the chat and video calling features!
-**My Username:** `PlonGuo`~~
-
-This url is not working now since the free plan of Fly.io ran out of memory. Obviously, I don't want to pay for it :)
+Create an account and add me as a friend to test the chat and video calling features!
+**My Username:** `PlonGuo`
 
 ## Tech Stack
 
