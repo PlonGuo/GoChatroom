@@ -63,7 +63,13 @@ export const Home = () => {
 
   const handleSendMessage = (content: string) => {
     if (currentSession) {
-      websocketService.sendMessage(currentSession.uuid, currentSession.receiveId, content, 0);
+      websocketService.sendMessage(
+        currentSession.uuid,
+        currentSession.receiveId,
+        content,
+        0,
+        currentSession.isGroup || false,
+      );
     }
   };
 
@@ -129,14 +135,16 @@ export const Home = () => {
                 title={
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>{currentSession.receiveName}</span>
-                    <Tooltip title="Video Call">
-                      <Button
-                        type="text"
-                        icon={<VideoCameraOutlined />}
-                        onClick={handleStartVideoCall}
-                        disabled={!isConnected}
-                      />
-                    </Tooltip>
+                    {!currentSession.isGroup && (
+                      <Tooltip title="Video Call">
+                        <Button
+                          type="text"
+                          icon={<VideoCameraOutlined />}
+                          onClick={handleStartVideoCall}
+                          disabled={!isConnected}
+                        />
+                      </Tooltip>
+                    )}
                   </div>
                 }
               >

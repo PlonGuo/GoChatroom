@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Tabs, Badge, App } from 'antd';
-import { TeamOutlined, UserAddOutlined, SearchOutlined } from '@ant-design/icons';
-import { ContactList, FriendRequestList, UserSearch } from '../components';
+import { TeamOutlined, UserAddOutlined, SearchOutlined, UsergroupAddOutlined } from '@ant-design/icons';
+import { ContactList, FriendRequestList, UserSearch, GroupList, GroupSearch } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchContacts, fetchFriendRequests } from '../store/contactSlice';
 import { createPrivateSession } from '../store/sessionSlice';
@@ -64,6 +64,26 @@ export const Contacts = () => {
         </span>
       ),
       children: <UserSearch />,
+    },
+    {
+      key: 'groups',
+      label: (
+        <span>
+          <UsergroupAddOutlined />
+          My Groups
+        </span>
+      ),
+      children: <GroupList />,
+    },
+    {
+      key: 'findGroups',
+      label: (
+        <span>
+          <SearchOutlined />
+          Find Groups
+        </span>
+      ),
+      children: <GroupSearch />,
     },
   ];
 

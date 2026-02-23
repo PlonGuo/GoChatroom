@@ -1,5 +1,5 @@
 import { List, Avatar, Typography, Badge, Empty, Popconfirm, Button, App } from 'antd';
-import { UserOutlined, DeleteOutlined } from '@ant-design/icons';
+import { UserOutlined, DeleteOutlined, TeamOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { setCurrentSession, deleteSession } from '../store/sessionSlice';
 import type { Session } from '../types';
@@ -143,7 +143,7 @@ export const SessionList = ({ onSelectSession }: SessionListProps) => {
                 >
                   <Avatar
                     src={session.avatar}
-                    icon={<UserOutlined />}
+                    icon={session.isGroup ? <TeamOutlined /> : <UserOutlined />}
                   />
                 </Badge>
               }
