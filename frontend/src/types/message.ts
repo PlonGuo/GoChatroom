@@ -29,6 +29,7 @@ export interface Session {
   uuid: string;
   receiveId: string;
   receiveName: string;
+  isGroup?: boolean;
   avatar: string;
   lastMessage: string;
   lastMessageAt?: string;
@@ -40,6 +41,7 @@ export interface CreateSessionRequest {
   receiveId: string;
   receiveName: string;
   avatar?: string;
+  isGroup?: boolean;
 }
 
 export interface SendMessageRequest {

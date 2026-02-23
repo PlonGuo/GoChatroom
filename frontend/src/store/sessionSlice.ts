@@ -52,6 +52,7 @@ export const createGroupSession = createAsyncThunk(
         receiveId: group.uuid,
         receiveName: group.name,
         avatar: group.avatar,
+        isGroup: true,
       });
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to create session');
@@ -108,14 +109,18 @@ const sessionSlice = createSlice({
       // Check if this message is for the current session
       let isForCurrentSession = false;
       if (state.currentSession) {
-        isForCurrentSession =
-          message.sessionId === state.currentSession.uuid ||
-          // Also match by participants in case sessionId doesn't match
-          (message.sendId === state.currentSession.receiveId ||
-            message.receiveId === state.currentSession.receiveId);
+        if (state.currentSession.isGroup) {
+          // Group session: match by group UUID in receiveId
+          isForCurrentSession = message.receiveId === state.currentSession.receiveId;
+        } else {
+          // Private session: match by sessionId or participant
+          isForCurrentSession =
+            message.sessionId === state.currentSession.uuid ||
+            message.sendId === state.currentSession.receiveId ||
+            message.receiveId === state.currentSession.receiveId;
+        }
 
         if (isForCurrentSession) {
-          // Avoid duplicate messages
           const exists = state.messages.some((m) => m.uuid === message.uuid);
           if (!exists) {
             state.messages.push(message);
@@ -128,20 +133,21 @@ const sessionSlice = createSlice({
 
       // If session not found by sessionId, try to find by participants
       if (!session) {
-        session = state.sessions.find(
-          (s) => s.receiveId === message.sendId || s.receiveId === message.receiveId
-        );
+        session = state.sessions.find((s) => {
+          if (s.isGroup) {
+            // Group session: match by group UUID
+            return s.receiveId === message.receiveId;
+          }
+          return s.receiveId === message.sendId || s.receiveId === message.receiveId;
+        });
       }
 
       if (session) {
         session.lastMessage = message.content;
         session.lastMessageAt = message.createdAt;
 
-        // Increment unread count if:
-        // 1. Message is received (sent by the other person, i.e., sendId === session.receiveId)
-        // 2. Message is NOT for the currently open session
-        const isReceivedMessage = message.sendId === session.receiveId;
-        if (isReceivedMessage && !isForCurrentSession) {
+        // Increment unread count if message is NOT for the currently open session
+        if (!isForCurrentSession) {
           session.unreadCount = (session.unreadCount || 0) + 1;
         }
 

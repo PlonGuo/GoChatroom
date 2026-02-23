@@ -97,7 +97,7 @@ class WebSocketService {
     }
   }
 
-  sendMessage(sessionId: string, receiveId: string, content: string, messageType: number = 0) {
+  sendMessage(sessionId: string, receiveId: string, content: string, messageType: number = 0, isGroup: boolean = false) {
     if (this.ws?.readyState !== WebSocket.OPEN) {
       console.error('WebSocket is not connected');
       return false;
@@ -108,6 +108,7 @@ class WebSocketService {
       content,
       sessionId,
       receiveId,
+      isGroup,
     };
 
     this.ws.send(JSON.stringify(message));
