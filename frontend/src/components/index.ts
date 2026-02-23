@@ -13,3 +13,6 @@ export { VideoCall } from './VideoCall';
 export { IncomingCallModal } from './IncomingCallModal';
 export { ThemeToggle } from './ThemeToggle';
 export { GlobalVideoCall } from './GlobalVideoCall';
+export { GroupList } from './GroupList';
+export { CreateGroupModal } from './CreateGroupModal';
+export { GroupSearch } from './GroupSearch';
