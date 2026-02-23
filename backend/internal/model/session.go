@@ -14,6 +14,7 @@ type Session struct {
 	SendID        string         `gorm:"type:varchar(20);not null;index" json:"sendId"`       // Session owner (viewer)
 	ReceiveID     string         `gorm:"type:varchar(20);not null;index" json:"receiveId"`    // Contact UUID (user or group)
 	ReceiveName   string         `gorm:"type:varchar(50)" json:"receiveName"`              // Display name
+	IsGroup       bool           `gorm:"default:false" json:"isGroup"`
 	Avatar        string         `gorm:"type:varchar(255);default:'https://api.dicebear.com/7.x/avataaars/svg'" json:"avatar"`
 	LastMessage   string         `gorm:"type:text" json:"lastMessage"`
 	LastMessageAt sql.NullTime   `json:"lastMessageAt"`

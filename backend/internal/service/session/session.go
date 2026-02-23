@@ -21,6 +21,7 @@ type SessionResponse struct {
 	UUID          string `json:"uuid"`
 	ReceiveID     string `json:"receiveId"`
 	ReceiveName   string `json:"receiveName"`
+	IsGroup       bool   `json:"isGroup"`
 	Avatar        string `json:"avatar"`
 	LastMessage   string `json:"lastMessage"`
 	LastMessageAt string `json:"lastMessageAt,omitempty"`
@@ -29,7 +30,7 @@ type SessionResponse struct {
 }
 
 // GetOrCreate gets an existing session or creates a new one
-func GetOrCreate(userID, receiveID, receiveName, avatar string) (*model.Session, error) {
+func GetOrCreate(userID, receiveID, receiveName, avatar string, isGroup bool) (*model.Session, error) {
 	var session model.Session
 
 	// Try to find existing session
@@ -49,6 +50,7 @@ func GetOrCreate(userID, receiveID, receiveName, avatar string) (*model.Session,
 		ReceiveID:   receiveID,
 		ReceiveName: receiveName,
 		Avatar:      avatar,
+		IsGroup:     isGroup,
 	}
 
 	if err := database.DB.Create(&session).Error; err != nil {
@@ -85,6 +87,7 @@ func GetUserSessions(userID string) ([]SessionResponse, error) {
 			UUID:        s.UUID,
 			ReceiveID:   s.ReceiveID,
 			ReceiveName: s.ReceiveName,
+			IsGroup:     s.IsGroup,
 			Avatar:      s.Avatar,
 			LastMessage: s.LastMessage,
 			UnreadCount: s.UnreadCount,

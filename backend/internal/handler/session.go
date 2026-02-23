@@ -13,6 +13,7 @@ type CreateSessionRequest struct {
 	ReceiveID   string `json:"receiveId" binding:"required"`
 	ReceiveName string `json:"receiveName" binding:"required"`
 	Avatar      string `json:"avatar"`
+	IsGroup     bool   `json:"isGroup"`
 }
 
 // CreateSession creates a new session or returns existing one
@@ -30,7 +31,7 @@ func CreateSession(c *gin.Context) {
 		avatar = "https://api.dicebear.com/7.x/avataaars/svg"
 	}
 
-	sess, err := session.GetOrCreate(userID.(string), req.ReceiveID, req.ReceiveName, avatar)
+	sess, err := session.GetOrCreate(userID.(string), req.ReceiveID, req.ReceiveName, avatar, req.IsGroup)
 	if err != nil {
 		response.InternalError(c, "Failed to create session")
 		return
@@ -40,6 +41,7 @@ func CreateSession(c *gin.Context) {
 		"uuid":        sess.UUID,
 		"receiveId":   sess.ReceiveID,
 		"receiveName": sess.ReceiveName,
+		"isGroup":     sess.IsGroup,
 		"avatar":      sess.Avatar,
 	})
 }
@@ -75,6 +77,7 @@ func GetSession(c *gin.Context) {
 		"uuid":        sess.UUID,
 		"receiveId":   sess.ReceiveID,
 		"receiveName": sess.ReceiveName,
+		"isGroup":     sess.IsGroup,
 		"avatar":      sess.Avatar,
 		"lastMessage": sess.LastMessage,
 		"unreadCount": sess.UnreadCount,

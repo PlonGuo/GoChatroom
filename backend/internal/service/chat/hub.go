@@ -129,17 +129,37 @@ func (h *Hub) handleMessage(msg *WSMessage) {
 		session.UpdateLastMessage(msg.SessionID, displayContent)
 	}
 
-	// Get or create receiver's session (for direct messages)
 	var receiverSessionID string
-	if !msg.IsGroup {
-		receiverSession, err := session.GetOrCreate(msg.ReceiveID, msg.SendID, msg.SendName, msg.SendAvatar)
+	if msg.IsGroup {
+		// Group message: update all other members' sessions
+		var group model.Group
+		if err := database.DB.Where("uuid = ?", msg.ReceiveID).First(&group).Error; err == nil {
+			var members []string
+			if err := json.Unmarshal(group.Members, &members); err == nil {
+				for _, memberID := range members {
+					if memberID == msg.SendID {
+						continue // Skip sender, already updated above
+					}
+					memberSession, err := session.GetOrCreate(memberID, msg.ReceiveID, group.Name, group.Avatar, true)
+					if err != nil {
+						log.Printf("Failed to get/create group session for member %s: %v", memberID, err)
+						continue
+					}
+					session.UpdateLastMessage(memberSession.UUID, displayContent)
+					if err := session.IncrementUnread(memberSession.UUID); err != nil {
+						log.Printf("Failed to increment unread for member %s: %v", memberID, err)
+					}
+				}
+			}
+		}
+	} else {
+		// Get or create receiver's session (for direct messages)
+		receiverSession, err := session.GetOrCreate(msg.ReceiveID, msg.SendID, msg.SendName, msg.SendAvatar, false)
 		if err != nil {
 			log.Printf("Failed to get/create receiver session: %v", err)
 		} else {
 			receiverSessionID = receiverSession.UUID
-			// Update receiver's session last message
 			session.UpdateLastMessage(receiverSessionID, displayContent)
-			// Increment unread count for receiver's session
 			if err := session.IncrementUnread(receiverSessionID); err != nil {
 				log.Printf("Failed to increment unread count: %v", err)
 			}
