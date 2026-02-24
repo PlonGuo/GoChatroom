@@ -93,6 +93,7 @@ func (h *SignalingHub) relayMessage(msg *SignalingMessage) {
 
 	if !ok {
 		log.Printf("[WebRTC] ✗ Target user NOT connected: %s", msg.To)
+		h.notifySender(msg.From, "peer_not_connected")
 		return
 	}
 
@@ -106,7 +107,43 @@ func (h *SignalingHub) relayMessage(msg *SignalingMessage) {
 	case targetClient.send <- data:
 		log.Printf("[WebRTC] ✓ Message relayed successfully: type=%s, to=%s", msg.Type, msg.To)
 	default:
-		log.Printf("[WebRTC] ✗ Client buffer full: %s", msg.To)
+		log.Printf("[WebRTC] ✗ Buffer full: %s, msg type: %s", msg.To, msg.Type)
+
+		// 1. Notify sender that peer is unavailable
+		h.notifySender(msg.From, "peer_unavailable")
+
+		// 2. Kick the unhealthy client to force reconnect
+		h.mu.Lock()
+		delete(h.clients, targetClient.userID)
+		close(targetClient.send)
+		h.mu.Unlock()
+	}
+}
+
+// notifySender sends an error notification to the sender (non-blocking)
+func (h *SignalingHub) notifySender(userID string, reason string) {
+	h.mu.RLock()
+	sender, ok := h.clients[userID]
+	h.mu.RUnlock()
+	if !ok {
+		return
+	}
+
+	errMsg := &SignalingMessage{
+		Type:    "error",
+		From:    "server",
+		To:      userID,
+		Payload: json.RawMessage(`{"reason":"` + reason + `"}`),
+	}
+	data, err := json.Marshal(errMsg)
+	if err != nil {
+		return
+	}
+
+	select {
+	case sender.send <- data:
+	default:
+		// Sender buffer also full, nothing we can do
 	}
 }
 

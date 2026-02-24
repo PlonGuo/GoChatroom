@@ -3,7 +3,7 @@ import { getICEServers, type ICEServer } from '../api/webrtcApi';
 type SignalingHandler = (data: SignalingData) => void;
 
 interface SignalingData {
-  type: 'offer' | 'answer' | 'ice-candidate' | 'call-request' | 'call-accepted' | 'call-rejected' | 'call-ended';
+  type: 'offer' | 'answer' | 'ice-candidate' | 'call-request' | 'call-accepted' | 'call-rejected' | 'call-ended' | 'error';
   from: string;
   to: string;
   payload?: RTCSessionDescriptionInit | RTCIceCandidateInit | null;
@@ -156,6 +156,17 @@ class WebRTCService {
         console.log('[WebRTC] Received ICE candidate from:', data.from);
         await this.handleIceCandidate(data.payload as RTCIceCandidateInit);
         break;
+
+      case 'error': {
+        const reason = (data.payload as unknown as { reason: string })?.reason;
+        console.error('[WebRTC] Server error:', reason);
+        if (reason === 'peer_unavailable' || reason === 'peer_not_connected') {
+          this.clearCallTimeout();
+          this.cleanup();
+          this.notifyStateChange();
+        }
+        break;
+      }
     }
   }
 
