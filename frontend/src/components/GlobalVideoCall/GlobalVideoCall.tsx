@@ -97,8 +97,8 @@ export const GlobalVideoCall = () => {
 
   return (
     <>
-      {/* Video Call UI - shows during active call or while calling */}
-      {(callState.isInCall || callState.isCalling) && (
+      {/* Video Call UI - shows during active call, while calling, or showing error */}
+      {(callState.isInCall || callState.isCalling || callState.errorReason) && (
         <VideoCall onClose={handleCloseVideoCall} />
       )}
 

@@ -16,6 +16,7 @@ interface CallState {
   remoteUserId: string | null;
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
+  errorReason: string | null;
 }
 
 // Constants
@@ -38,6 +39,8 @@ class WebRTCService {
   private callTimeoutId: ReturnType<typeof setTimeout> | null = null; // Timeout for unanswered calls
   private iceRestartAttempts = 0;
   private maxIceRestartAttempts = 3;
+  private errorReason: string | null = null;
+  private errorCleanupTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   // Default fallback STUN servers
   private iceServers: RTCIceServer[] = [
@@ -162,8 +165,14 @@ class WebRTCService {
         console.error('[WebRTC] Server error:', reason);
         if (reason === 'peer_unavailable' || reason === 'peer_not_connected') {
           this.clearCallTimeout();
-          this.cleanup();
+          // Show error to user for 2 seconds before closing
+          this.errorReason = reason;
           this.notifyStateChange();
+          this.errorCleanupTimeoutId = setTimeout(() => {
+            this.errorCleanupTimeoutId = null;
+            this.cleanup();
+            this.notifyStateChange();
+          }, 2000);
         }
         break;
       }
@@ -754,6 +763,11 @@ class WebRTCService {
 
     // Clear any pending timeouts
     this.clearCallTimeout();
+    if (this.errorCleanupTimeoutId) {
+      clearTimeout(this.errorCleanupTimeoutId);
+      this.errorCleanupTimeoutId = null;
+    }
+    this.errorReason = null;
 
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => {
@@ -787,6 +801,7 @@ class WebRTCService {
       remoteUserId: this.remoteUserId,
       localStream: this.localStream,
       remoteStream: this.remoteStream,
+      errorReason: this.errorReason,
     };
     this.stateChangeHandlers.forEach((handler) => handler(state));
   }
@@ -813,6 +828,7 @@ class WebRTCService {
       remoteUserId: this.remoteUserId,
       localStream: this.localStream,
       remoteStream: this.remoteStream,
+      errorReason: this.errorReason,
     };
   }
 

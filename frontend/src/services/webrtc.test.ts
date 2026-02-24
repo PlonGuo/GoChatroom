@@ -36,6 +36,7 @@ class MockWebSocket {
 
 describe('WebRTCService error handling', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.stubGlobal('WebSocket', MockWebSocket);
 
     // Mock getUserMedia
@@ -51,12 +52,20 @@ describe('WebRTCService error handling', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     webrtcService.disconnect();
     vi.restoreAllMocks();
   });
 
+  // Helper to flush pending microtasks without advancing timers
+  async function flushMicrotasks() {
+    await vi.advanceTimersByTimeAsync(0);
+  }
+
   async function connectService() {
-    await webrtcService.connect('test-token', 'user-a');
+    const connectPromise = webrtcService.connect('test-token', 'user-a');
+    await flushMicrotasks();
+    await connectPromise;
     // Trigger onopen to mark as connected
     mockWsInstance.onopen?.();
   }
@@ -68,16 +77,12 @@ describe('WebRTCService error handling', () => {
     mockWsInstance.onmessage?.(event);
   }
 
-  it('should handle peer_not_connected error and cleanup call state', async () => {
+  it('should set errorReason immediately on peer_not_connected, then cleanup after 2s', async () => {
     await connectService();
 
-    const stateChanges: CallState[] = [];
-    webrtcService.onStateChange((state) => stateChanges.push({ ...state }));
-
-    // Simulate initiating a call to set isCalling state
     await webrtcService.initiateCall('user-b');
+    await flushMicrotasks();
 
-    // Simulate receiving an error from server
     simulateMessage({
       type: 'error',
       from: 'server',
@@ -85,21 +90,25 @@ describe('WebRTCService error handling', () => {
       payload: { reason: 'peer_not_connected' },
     });
 
-    // Wait for async handling
-    await new Promise((r) => setTimeout(r, 10));
+    // Immediately after error: errorReason is set, still in calling state
+    const immediateState = webrtcService.getState();
+    expect(immediateState.errorReason).toBe('peer_not_connected');
+    expect(immediateState.isCalling).toBe(true);
 
-    // After error, the service should have cleaned up
+    // After 2 seconds: fully cleaned up
+    await vi.advanceTimersByTimeAsync(2000);
     const finalState = webrtcService.getState();
+    expect(finalState.errorReason).toBeNull();
     expect(finalState.isInCall).toBe(false);
     expect(finalState.isCalling).toBe(false);
-    expect(finalState.isReceivingCall).toBe(false);
     expect(finalState.remoteUserId).toBeNull();
   });
 
-  it('should handle peer_unavailable error and cleanup call state', async () => {
+  it('should set errorReason immediately on peer_unavailable, then cleanup after 2s', async () => {
     await connectService();
 
     await webrtcService.initiateCall('user-b');
+    await flushMicrotasks();
 
     simulateMessage({
       type: 'error',
@@ -108,18 +117,21 @@ describe('WebRTCService error handling', () => {
       payload: { reason: 'peer_unavailable' },
     });
 
-    await new Promise((r) => setTimeout(r, 10));
+    const immediateState = webrtcService.getState();
+    expect(immediateState.errorReason).toBe('peer_unavailable');
 
+    await vi.advanceTimersByTimeAsync(2000);
     const finalState = webrtcService.getState();
-    expect(finalState.isInCall).toBe(false);
+    expect(finalState.errorReason).toBeNull();
     expect(finalState.isCalling).toBe(false);
     expect(finalState.remoteUserId).toBeNull();
   });
 
-  it('should not cleanup on unknown error reasons', async () => {
+  it('should not set errorReason on unknown error reasons', async () => {
     await connectService();
 
     await webrtcService.initiateCall('user-b');
+    await flushMicrotasks();
 
     simulateMessage({
       type: 'error',
@@ -128,10 +140,9 @@ describe('WebRTCService error handling', () => {
       payload: { reason: 'unknown_reason' },
     });
 
-    await new Promise((r) => setTimeout(r, 10));
-
     // Should still be in calling state since we don't handle unknown reasons
     const finalState = webrtcService.getState();
+    expect(finalState.errorReason).toBeNull();
     expect(finalState.isCalling).toBe(true);
     expect(finalState.remoteUserId).toBe('user-b');
   });
@@ -149,9 +160,33 @@ describe('WebRTCService error handling', () => {
       payload: { reason: 'peer_not_connected' },
     });
 
-    await new Promise((r) => setTimeout(r, 10));
-
     expect(receivedMessages).toHaveLength(1);
     expect(receivedMessages[0].type).toBe('error');
+
+    // Clean up the pending timeout
+    await vi.advanceTimersByTimeAsync(2000);
+  });
+
+  it('should clear errorReason on disconnect before timeout fires', async () => {
+    await connectService();
+
+    await webrtcService.initiateCall('user-b');
+    await flushMicrotasks();
+
+    simulateMessage({
+      type: 'error',
+      from: 'server',
+      to: 'user-a',
+      payload: { reason: 'peer_not_connected' },
+    });
+
+    expect(webrtcService.getState().errorReason).toBe('peer_not_connected');
+
+    // Disconnect before 2s timeout fires
+    webrtcService.disconnect();
+
+    const state = webrtcService.getState();
+    expect(state.errorReason).toBeNull();
+    expect(state.isCalling).toBe(false);
   });
 });
