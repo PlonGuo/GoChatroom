@@ -2,12 +2,14 @@
 
 A modern real-time chat application built with Go and React, featuring instant messaging, group chats, and video calling.
 
-## Live Demo
+~~## Live Demo~~
 
-**Try it out:** [https://frontend-three-pied-39.vercel.app](https://frontend-three-pied-39.vercel.app)
+~~**Try it out:** [https://frontend-three-pied-39.vercel.app](https://frontend-three-pied-39.vercel.app)~~
 
-Create an account and add me as a friend to test the chat and video calling features!
-**My Username:** `PlonGuo`
+~~Create an account and add me as a friend to test the chat and video calling features!~~
+~~**My Username:** `PlonGuo`~~
+
+Since maintain the live app costs money, I have stopped the live server on Fly.io platform.
 
 ## Tech Stack
 
